@@ -1,0 +1,33 @@
+/* client/src/index.css */
+body {
+  margin: 0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #333;
+  line-height: 1.6;
+}
+
+a {
+  text-decoration: none;
+  color: #500000;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: #300000;
+}
+
+/* TAMU Button Styles */
+.MuiButton-contained {
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* Responsive typography */
+@media (max-width: 600px) {
+  html {
+    font-size: 14px;
+  }
+}
