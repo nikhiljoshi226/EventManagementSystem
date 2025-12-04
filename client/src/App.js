@@ -4,6 +4,7 @@ import Login from './components/Login';
 import StudentDashboard from './components/StudentDashboard';
 import FacultyDashboard from './components/FacultyDashboard';
 import SponsorDashboard from './components/SponsorDashboard';
+import MentorDashboard from './components/MentorDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -48,6 +49,17 @@ function App() {
             <ProtectedRoute allowedRoles={['Sponsor']}>
               <Layout>
                 <SponsorDashboard />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/mentor" 
+          element={
+            <ProtectedRoute allowedRoles={['Mentor']}>
+              <Layout>
+                <MentorDashboard />
               </Layout>
             </ProtectedRoute>
           } 

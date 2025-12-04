@@ -237,7 +237,30 @@ const StudentDashboard = () => {
   }
 
   return (
-      <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Box sx={{ 
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      backgroundColor: '#f5f7fa'
+    }}>
+      {/* Header Section */}
+      <Box sx={{ flexShrink: 0 }}>
+        <Container maxWidth="xl" sx={{ py: 2 }}>
+          <Typography variant="h5" fontWeight="bold" color={TAMU_MAROON}>
+            CMIS Student Portal
+          </Typography>
+        </Container>
+      </Box>
+      
+      {/* Main Content */}
+      <Container maxWidth="xl" sx={{ py: 3, flex: 1 }}>
+        <Card elevation={3} sx={{ 
+          borderRadius: 2,
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }}>
         {/* Header with Welcome Message */}
         <Box 
           sx={{ 
@@ -350,9 +373,19 @@ const StudentDashboard = () => {
             </Grid>
           </Grid>
         </Box>
-
-        {/* Stats Grid */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
+      
+      {/* Main Content */}
+      <Box sx={{ 
+        flex: '1 0 auto', 
+        py: 4, 
+        backgroundColor: '#f5f7fa',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 'calc(100vh - 64px)' // Adjust based on your header height
+      }}>
+        <Container maxWidth="xl" sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          {/* Stats Grid */}
+          <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard elevation={0}>
               <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -452,31 +485,22 @@ const StudentDashboard = () => {
                         borderRadius: 4,
                       },
                       backgroundColor: alpha(TAMU_MAROON, 0.1),
+                      mb: 1
                     }} 
                   />
-                </Box>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, textAlign: 'right' }}>
-                  {stats.announcements > 0 ? 'New updates available' : 'No new updates'}
-                </Typography>
-              </Box>
-            </StatCard>
-          </Grid>
-        </Grid>
-
-        <Grid container spacing={3}>
-          {/* Upcoming Events */}
-          <Grid item xs={12} lg={8}>
-            <DashboardCard>
-              <CardContent>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                  <SectionTitle variant="h6" sx={{ mb: 0 }}>
-                    <EventIcon /> Upcoming Events
-                  </SectionTitle>
+                  <Typography variant="body2" color="text.secondary">
+                    Upcoming Events
+                  </Typography>
                   <Button 
                     color="primary" 
-                    endIcon={<ArrowForwardIcon />}
+                    endIcon={<ArrowForwardIcon fontSize="small" />}
                     size="small"
-                    sx={{ color: TAMU_MAROON }}
+                    sx={{ 
+                      color: TAMU_MAROON,
+                      fontSize: '0.75rem',
+                      minWidth: 'auto',
+                      p: '2px 8px'
+                    }}
                     onClick={() => navigate('/events')}
                   >
                     View All
@@ -494,13 +518,9 @@ const StudentDashboard = () => {
                     {events.slice(0, 3).map((event) => (
                       <Card 
                         key={event._id} 
-                        elevation={0}
                         sx={{
-                          border: '1px solid',
-                          borderColor: 'divider',
-                          borderRadius: 2,
-                          overflow: 'hidden',
-                          transition: 'all 0.2s ease',
+                          cursor: 'pointer',
+                          transition: 'transform 0.2s, box-shadow 0.2s',
                           '&:hover': {
                             borderColor: alpha(TAMU_MAROON, 0.5),
                             boxShadow: `0 2px 8px ${alpha(TAMU_MAROON, 0.08)}`,
@@ -508,7 +528,27 @@ const StudentDashboard = () => {
                         }}
                       >
                         <CardActionArea onClick={() => navigate(`/events/${event._id}`)}>
-                          <CardContent>
+                          <CardContent sx={{ 
+                flex: 1, 
+                display: 'flex', 
+                flexDirection: 'column',
+                minHeight: 0,
+                overflowY: 'auto',
+                '&::-webkit-scrollbar': {
+                  width: '6px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  background: '#f1f1f1',
+                  borderRadius: '4px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: '#888',
+                  borderRadius: '4px',
+                },
+                '&::-webkit-scrollbar-thumb:hover': {
+                  background: '#555',
+                }
+              }}>
                             <Grid container spacing={2} alignItems="center">
                               <Grid item xs={12} sm={3}>
                                 <Box 
@@ -591,12 +631,31 @@ const StudentDashboard = () => {
                     </Button>
                   </Box>
                 )}
-              </CardContent>
-            </DashboardCard>
+                
 
             {/* Quick Actions */}
             <DashboardCard sx={{ mt: 3 }}>
-              <CardContent>
+              <CardContent sx={{ 
+                flex: 1, 
+                display: 'flex', 
+                flexDirection: 'column',
+                minHeight: 0,
+                overflowY: 'auto',
+                '&::-webkit-scrollbar': {
+                  width: '6px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  background: '#f1f1f1',
+                  borderRadius: '4px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: '#888',
+                  borderRadius: '4px',
+                },
+                '&::-webkit-scrollbar-thumb:hover': {
+                  background: '#555',
+                }
+              }}>
                 <SectionTitle variant="h6">
                   <AssignmentIcon /> Quick Actions
                 </SectionTitle>
@@ -667,38 +726,67 @@ const StudentDashboard = () => {
                     Join Student Groups
                   </Button>
                 </Box>
+                
               </CardContent>
             </DashboardCard>
+            </Box>
+            </StatCard>
           </Grid>
+          
+        
 
           {/* Announcements and Quick Links */}
-          <Grid item xs={12} lg={4}>
-            <DashboardCard>
-              <CardContent>
-                <SectionTitle variant="h6">
-                  <AnnouncementIcon /> Announcements
+          <Grid item xs={12} lg={4} sx={{ display: 'flex', flexDirection: 'column', gap: 3, minHeight: 0 }}>
+            <DashboardCard sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+              <CardContent sx={{ 
+                flex: 1, 
+                display: 'flex', 
+                flexDirection: 'column',
+                minHeight: 0,
+                overflowY: 'auto',
+                '&::-webkit-scrollbar': {
+                  width: '6px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  background: '#f1f1f1',
+                  borderRadius: '4px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: '#888',
+                  borderRadius: '4px',
+                },
+                '&::-webkit-scrollbar-thumb:hover': {
+                  background: '#555',
+                }
+              }}>
+                <SectionTitle variant="subtitle1" sx={{ mb: 1, fontSize: '0.8125rem' }}>
+                  <AnnouncementIcon fontSize="small" sx={{ mr: 0.5, verticalAlign: 'middle' }} /> 
+                  Announcements
                 </SectionTitle>
                 
-                <Box sx={{ '& > *:not(:last-child)': { mb: 3, pb: 2, borderBottom: '1px solid', borderColor: 'divider' } }}>
+                <Box sx={{ '& > *:not(:last-child)': { mb: 2, pb: 1.5, borderBottom: '1px solid', borderColor: 'divider' }, flex: 1 }}>
                   <Box>
-                    <Box display="flex" alignItems="center" mb={1}>
+                    <Box display="flex" alignItems="center" mb={0.5}>
                       <Box 
                         sx={{
                           bgcolor: alpha(TAMU_MAROON, 0.1),
                           color: TAMU_MAROON,
-                          p: 0.75,
+                          p: 0.5,
                           borderRadius: '50%',
                           display: 'flex',
-                          mr: 1.5
+                          mr: 1,
+                          '& svg': {
+                            fontSize: '1rem'
+                          }
                         }}
                       >
-                        <AnnouncementIcon fontSize="small" />
+                        <AnnouncementIcon fontSize="inherit" />
                       </Box>
-                      <Typography variant="subtitle2" fontWeight={600}>
+                      <Typography variant="subtitle2" fontWeight={600} sx={{ fontSize: '0.8125rem' }}>
                         New Course Available
                       </Typography>
                     </Box>
-                    <Typography variant="body2" color="text.secondary" paragraph sx={{ pl: 5.5 }}>
+                    <Typography variant="body2" color="text.secondary" paragraph sx={{ pl: 4, fontSize: '0.8125rem', mb: 0.5, lineHeight: 1.4 }}>
                       Enroll now to learn the fundamentals of web development with our new course.
                     </Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ pl: 5.5, display: 'block' }}>
@@ -756,7 +844,27 @@ const StudentDashboard = () => {
             
             {/* Upcoming Deadlines */}
             <DashboardCard sx={{ mt: 3 }}>
-              <CardContent>
+              <CardContent sx={{ 
+                flex: 1, 
+                display: 'flex', 
+                flexDirection: 'column',
+                minHeight: 0,
+                overflowY: 'auto',
+                '&::-webkit-scrollbar': {
+                  width: '6px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  background: '#f1f1f1',
+                  borderRadius: '4px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: '#888',
+                  borderRadius: '4px',
+                },
+                '&::-webkit-scrollbar-thumb:hover': {
+                  background: '#555',
+                }
+              }}>
                 <SectionTitle variant="h6">
                   <CalendarIcon /> Upcoming Deadlines
                 </SectionTitle>
@@ -816,6 +924,10 @@ const StudentDashboard = () => {
           </Grid>
         </Grid>
       </Container>
+      </Box>
+        </Card>
+      </Container>
+    </Box>
   );
 };
 

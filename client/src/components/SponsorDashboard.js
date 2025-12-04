@@ -262,122 +262,273 @@ const SponsorDashboard = () => {
   }
 
   return (
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        {/* Header with Welcome Message */}
-        <Box 
-          sx={{ 
-            bgcolor: TAMU_MAROON,
-            color: 'white',
-            p: { xs: 3, md: 4 },
-            borderRadius: 2,
-            mb: 4,
-            boxShadow: 3,
-            background: `linear-gradient(135deg, ${TAMU_MAROON} 0%, ${alpha(TAMU_MAROON, 0.9)} 100%)`,
-            overflow: 'hidden',
-            position: 'relative',
-            '&:before': {
-              content: '""',
-              position: 'absolute',
-              top: 0,
-              right: 0,
-              bottom: 0,
-              left: 0,
-              background: 'radial-gradient(circle at 90% 10%, rgba(255,255,255,0.1) 0%, transparent 40%)',
-              zIndex: 0,
-            }
-          }}
-        >
-          <Grid container spacing={3} alignItems="center" position="relative" zIndex={1}>
-            <Grid item xs={12} md={8}>
-              <Box sx={{ maxWidth: '800px' }}>
-                <Typography 
-                  variant="h4" 
-                  component="h1" 
-                  fontWeight={700} 
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      {/* Header with Welcome Message */}
+      <Box 
+        sx={{ 
+          bgcolor: TAMU_MAROON,
+          color: 'white',
+          p: { xs: 3, md: 4 },
+          borderRadius: 2,
+          mb: 4,
+          boxShadow: 3,
+          background: `linear-gradient(135deg, ${TAMU_MAROON} 0%, ${alpha(TAMU_MAROON, 0.9)} 100%)`,
+          overflow: 'hidden',
+          position: 'relative',
+          '&:before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            background: 'radial-gradient(circle at 90% 10%, rgba(255,255,255,0.1) 0%, transparent 40%)',
+            zIndex: 0,
+          }
+        }}
+      >
+        <Grid container spacing={3} alignItems="center" position="relative" zIndex={1}>
+          <Grid item xs={12} md={8}>
+            <Box sx={{ maxWidth: '800px' }}>
+              <Typography 
+                variant="h4" 
+                component="h1" 
+                fontWeight={700} 
+                sx={{
+                  fontSize: { xs: '1.75rem', sm: '2rem', md: '2.25rem' },
+                  lineHeight: 1.2,
+                  mb: 2
+                }}
+              >
+                Welcome back,{' '}
+                <Box component="span" sx={{ color: TAMU_ACCENT }}>
+                  {user?.name?.split(' ')[0] || 'Sponsor'}!
+                </Box>
+              </Typography>
+              
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  opacity: 0.9, 
+                  mb: 4, 
+                  maxWidth: '90%',
+                  fontSize: { xs: '1rem', sm: '1.1rem' },
+                  lineHeight: 1.6
+                }}
+              >
+                Manage your events, view registrations, and track engagement with students.
+              </Typography>
+              
+              <Box display="flex" gap={2} flexWrap="wrap">
+                <Button 
+                  variant="contained" 
+                  size="large"
                   sx={{
-                    fontSize: { xs: '1.75rem', sm: '2rem', md: '2.25rem' },
-                    lineHeight: 1.2,
-                    mb: 2
+                    bgcolor: TAMU_ACCENT,
+                    color: TAMU_MAROON,
+                    fontWeight: 700,
+                    '&:hover': {
+                      bgcolor: alpha(TAMU_ACCENT, 0.9),
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 6px 16px rgba(0,0,0,0.2)',
+                    },
+                    px: { xs: 3, sm: 4 },
+                    py: 1.5,
+                    borderRadius: 2,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    minWidth: { xs: '100%', sm: 'auto' },
+                    textAlign: 'center',
                   }}
+                  startIcon={<EventAvailableIcon />}
+                  onClick={() => navigate('/create-event')}
                 >
-                  Welcome back,{' '}
-                  <Box component="span" sx={{ color: TAMU_ACCENT }}>
-                    {user?.name?.split(' ')[0] || 'Sponsor'}!
-                  </Box>
-                </Typography>
+                  Host New Event
+                </Button>
                 
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    opacity: 0.9, 
-                    mb: 4, 
-                    maxWidth: '90%',
-                    fontSize: { xs: '1rem', sm: '1.1rem' },
-                    lineHeight: 1.6
+                <Button 
+                  variant="outlined" 
+                  size="large"
+                  sx={{
+                    color: 'white',
+                    borderColor: 'rgba(255,255,255,0.4)',
+                    '&:hover': {
+                      bgcolor: 'rgba(255,255,255,0.15)',
+                      borderColor: 'white',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    },
+                    px: { xs: 3, sm: 4 },
+                    py: 1.5,
+                    borderRadius: 2,
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    minWidth: { xs: '100%', sm: 'auto' },
+                    textAlign: 'center',
                   }}
+                  startIcon={<AssessmentIcon />}
+                  onClick={() => navigate('/analytics')}
                 >
-                  Manage your events, view registrations, and track engagement with students.
-                </Typography>
-                
-                <Box display="flex" gap={2} flexWrap="wrap">
-                  <Button 
-                    variant="contained" 
-                    size="large"
-                    sx={{
-                      bgcolor: TAMU_ACCENT,
-                      color: TAMU_MAROON,
-                      fontWeight: 700,
+                  View Analytics
+                </Button>
+              </Box>
+            </Box>
+          </Grid>
+        </Grid>
+        </Box>
+
+        <Grid container spacing={3} sx={{ mt: 8, mb: 6 }}>
+          {/* Quick Actions */}
+          <Grid item xs={12} lg={4}>
+            <DashboardCard>
+              <Box sx={{ p: 3 }}>
+                <SectionTitle variant="h6">
+                  <EventAvailableIcon /> Quick Actions
+                </SectionTitle>
+                <Box display="flex" flexDirection="column" gap={2}>
+                  <QuickActionButton
+                    variant="contained"
+                    fullWidth
+                    sx={{ 
+                      bgcolor: TAMU_MAROON,
+                      color: TAMU_WHITE,
                       '&:hover': {
-                        bgcolor: alpha(TAMU_ACCENT, 0.9),
+                        bgcolor: alpha(TAMU_MAROON, 0.9),
                         transform: 'translateY(-2px)',
-                        boxShadow: '0 6px 16px rgba(0,0,0,0.2)',
+                        boxShadow: `0 4px 12px ${alpha(TAMU_MAROON, 0.2)}`,
                       },
-                      px: { xs: 3, sm: 4 },
-                      py: 1.5,
-                      borderRadius: 2,
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      minWidth: { xs: '100%', sm: 'auto' },
-                      textAlign: 'center',
+                      py: 1.8,
+                      borderRadius: '8px',
+                      fontWeight: 600,
+                      transition: 'all 0.2s ease',
                     }}
                     startIcon={<EventAvailableIcon />}
                     onClick={() => navigate('/create-event')}
                   >
-                    Host New Event
-                  </Button>
+                    Create New Event
+                  </QuickActionButton>
                   
-                  <Button 
-                    variant="outlined" 
-                    size="large"
-                    sx={{
-                      color: 'white',
-                      borderColor: 'rgba(255,255,255,0.4)',
+                  <QuickActionButton
+                    variant="outlined"
+                    fullWidth
+                    sx={{ 
+                      borderColor: alpha(TAMU_MAROON, 0.3),
+                      color: TAMU_MAROON,
                       '&:hover': {
-                        bgcolor: 'rgba(255,255,255,0.15)',
-                        borderColor: 'white',
+                        bgcolor: alpha(TAMU_MAROON, 0.05),
+                        borderColor: TAMU_MAROON,
                         transform: 'translateY(-2px)',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                        boxShadow: `0 4px 12px ${alpha(TAMU_MAROON, 0.1)}`,
                       },
-                      px: { xs: 3, sm: 4 },
+                      justifyContent: 'flex-start',
                       py: 1.5,
-                      borderRadius: 2,
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      minWidth: { xs: '100%', sm: 'auto' },
-                      textAlign: 'center',
+                      borderRadius: '8px',
+                      transition: 'all 0.2s ease',
                     }}
                     startIcon={<AssessmentIcon />}
                     onClick={() => navigate('/analytics')}
                   >
                     View Analytics
-                  </Button>
+                  </QuickActionButton>
+                  
+                  <QuickActionButton
+                    variant="outlined"
+                    fullWidth
+                    sx={{ 
+                      borderColor: alpha(TAMU_MAROON, 0.3),
+                      color: TAMU_MAROON,
+                      '&:hover': {
+                        bgcolor: alpha(TAMU_MAROON, 0.05),
+                        borderColor: TAMU_MAROON,
+                        transform: 'translateY(-2px)',
+                        boxShadow: `0 4px 12px ${alpha(TAMU_MAROON, 0.1)}`,
+                      },
+                      justifyContent: 'flex-start',
+                      py: 1.5,
+                      borderRadius: '8px',
+                      transition: 'all 0.2s ease',
+                    }}
+                    startIcon={<PeopleIcon />}
+                    onClick={() => navigate('/students')}
+                  >
+                    View Students
+                  </QuickActionButton>
                 </Box>
               </Box>
-            </Grid>
+            </DashboardCard>
           </Grid>
-        </Box>
 
-        {/* Stats Grid */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
+          {/* Recent Registrations */}
+          <Grid item xs={12} lg={8}>
+            <DashboardCard>
+              <Box sx={{ p: 3 }}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+                  <SectionTitle variant="h6" sx={{ mb: 0 }}>
+                    Recent Registrations
+                  </SectionTitle>
+                  <Box sx={{ width: 250 }}>
+                    <FormControl fullWidth size="small">
+                      <InputLabel id="filter-label">Filter by Interest</InputLabel>
+                      <Select
+                        labelId="filter-label"
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
+                      >
+                        <MenuItem value="all">All</MenuItem>
+                        <MenuItem value="Workshop">Workshop</MenuItem>
+                        <MenuItem value="Web Dev">Web Dev</MenuItem>
+                        <MenuItem value="Demo">Demo</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Box>
+                </Box>
+                <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
+                  {filteredRegistrations.map((registration, index) => (
+                    <Box key={index} sx={{ p: 2, borderBottom: '1px solid #ddd' }}>
+                      <Box display="flex" justifyContent="space-between" alignItems="center">
+                        <Box>
+                          <Typography variant="h6" component="div" sx={{ mb: 0.5 }}>
+                            {registration.user.name}
+                          </Typography>
+                          <Typography variant="subtitle2" color="text.secondary">
+                            {registration.event.title}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Button 
+                            variant="contained" 
+                            size="small"
+                            sx={{
+                              bgcolor: TAMU_ACCENT,
+                              color: TAMU_MAROON,
+                              '&:hover': {
+                                bgcolor: alpha(TAMU_ACCENT, 0.9),
+                                transform: 'translateY(-2px)',
+                                boxShadow: '0 6px 16px rgba(0,0,0,0.2)',
+                              },
+                              px: { xs: 2, sm: 3 },
+                              py: 1,
+                              borderRadius: 2,
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                              minWidth: { xs: '100%', sm: 'auto' },
+                              textAlign: 'center',
+                            }}
+                            startIcon={<AssignmentIcon />}
+                            onClick={() => handleDownloadResume(registration.user.resumeUrl)}
+                          >
+                            Download Resume
+                          </Button>
+                        </Box>
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            </DashboardCard>
+          </Grid>
+        </Grid>
+
+        <Grid container spacing={3} sx={{ mt: 8 }}>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard elevation={0}>
               <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -488,7 +639,7 @@ const SponsorDashboard = () => {
           </Grid>
         </Grid>
 
-        <Grid container spacing={3}>
+        <Grid container spacing={3} sx={{ mt: 8, mb: 6 }}>
           {/* Quick Actions */}
           <Grid item xs={12} lg={4}>
             <DashboardCard>
