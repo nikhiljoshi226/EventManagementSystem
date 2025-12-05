@@ -35,7 +35,7 @@ import {
   GroupAdd as GroupAddIcon,
   EventAvailable as EventAvailableIcon
 } from '@mui/icons-material';
-import api from '../api';
+import { api } from '../utils/api';
 import Layout from './Layout';
 
 // TAMU Color Palette

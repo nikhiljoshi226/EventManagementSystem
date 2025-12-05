@@ -23,9 +23,11 @@
     "express-validator": "^7.3.1",
     "ml-distance": "^4.0.1",
     "mongodb": "^7.0.0",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^9.0.0",
     "multer": "^2.0.2",
     "nodemon": "^3.1.11",
+    "react-syntax-highlighter": "^16.1.0",
     "pdf-parse": "^2.4.5"
   },
   "devDependencies": {

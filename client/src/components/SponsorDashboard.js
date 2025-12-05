@@ -48,6 +48,7 @@ import {
 } from '@mui/icons-material';
 import { api, getAuthConfig } from '../utils/api';
 import Layout from './Layout';
+import StudentSearch from './StudentSearch';
 
 // TAMU Color Palette
 const TAMU_MAROON = '#500000';
@@ -179,7 +180,12 @@ const SponsorDashboard = () => {
       
       // Try to fetch real data first
       try {
-        const response = await api.get('/dashboard/sponsor');
+        const response = await api.get('/sponsor/registrations', {
+          headers: {
+            'x-user-id': 'demo-user-123',
+            'x-demo-role': 'sponsor'
+          }
+        });
         if (response.data) {
           setRegistrations(response.data.registrations || []);
           return;
@@ -457,78 +463,13 @@ const SponsorDashboard = () => {
             </DashboardCard>
           </Grid>
 
-          {/* Recent Registrations */}
-          <Grid item xs={12} lg={8}>
-            <DashboardCard>
-              <Box sx={{ p: 3 }}>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                  <SectionTitle variant="h6" sx={{ mb: 0 }}>
-                    Recent Registrations
-                  </SectionTitle>
-                  <Box sx={{ width: 250 }}>
-                    <FormControl fullWidth size="small">
-                      <InputLabel id="filter-label">Filter by Interest</InputLabel>
-                      <Select
-                        labelId="filter-label"
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value)}
-                      >
-                        <MenuItem value="all">All</MenuItem>
-                        <MenuItem value="Workshop">Workshop</MenuItem>
-                        <MenuItem value="Web Dev">Web Dev</MenuItem>
-                        <MenuItem value="Demo">Demo</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Box>
-                </Box>
-                <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
-                  {filteredRegistrations.map((registration, index) => (
-                    <Box key={index} sx={{ p: 2, borderBottom: '1px solid #ddd' }}>
-                      <Box display="flex" justifyContent="space-between" alignItems="center">
-                        <Box>
-                          <Typography variant="h6" component="div" sx={{ mb: 0.5 }}>
-                            {registration.user.name}
-                          </Typography>
-                          <Typography variant="subtitle2" color="text.secondary">
-                            {registration.event.title}
-                          </Typography>
-                        </Box>
-                        <Box>
-                          <Button 
-                            variant="contained" 
-                            size="small"
-                            sx={{
-                              bgcolor: TAMU_ACCENT,
-                              color: TAMU_MAROON,
-                              '&:hover': {
-                                bgcolor: alpha(TAMU_ACCENT, 0.9),
-                                transform: 'translateY(-2px)',
-                                boxShadow: '0 6px 16px rgba(0,0,0,0.2)',
-                              },
-                              px: { xs: 2, sm: 3 },
-                              py: 1,
-                              borderRadius: 2,
-                              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                              minWidth: { xs: '100%', sm: 'auto' },
-                              textAlign: 'center',
-                            }}
-                            startIcon={<AssignmentIcon />}
-                            onClick={() => handleDownloadResume(registration.user.resumeUrl)}
-                          >
-                            Download Resume
-                          </Button>
-                        </Box>
-                      </Box>
-                    </Box>
-                  ))}
-                </Box>
-              </Box>
-            </DashboardCard>
-          </Grid>
-        </Grid>
+        {/* Student Search */}
+        <Box sx={{ mb: 4 }}>
+          <StudentSearch />
+        </Box>
 
-        <Grid container spacing={3} sx={{ mt: 8 }}>
+        {/* Stats Grid */}
+        <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard elevation={0}>
               <Box display="flex" alignItems="center" justifyContent="space-between">

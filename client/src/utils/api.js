@@ -9,39 +9,8 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: false // We'll handle credentials via headers instead
 });
-
-// Add a request interceptor to include auth token
-// api.interceptors.request.use(
-//   (config) => {
-//     const user = JSON.parse(localStorage.getItem('user'));
-    
-//     // For demo purposes, we'll use the demo headers if available
-//     if (user) {
-//       config.headers['x-user-id'] = user.id || 'demo-user-id';
-//       config.headers['x-demo-role'] = user.role || 'demo-role';
-//     }
-    
-//     return config;
-//   },
-//   (error) => {
-//     return Promise.reject(error);
-//   }
-// );
-
-// Add a response interceptor to handle errors
-// api.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     // Handle 401 Unauthorized errors
-//     if (error.response?.status === 401) {
-//       // Redirect to login or handle unauthorized access
-//       localStorage.removeItem('user');
-//       window.location.href = '/login';
-//     }
-//     return Promise.reject(error);
-//   }
-// );
 
 // // Helper function to get auth config
 // const getAuthConfig = () => {
@@ -58,7 +27,7 @@ const api = axios.create({
 export { api };
 
 // Example usage in components:
-// import { api, getAuthConfig } from '../utils/api';
+// import { api } from '../utils/api';
 // 
 // // For GET requests
 // const response = await api.get('/endpoint', getAuthConfig());
