@@ -80,6 +80,9 @@ const Login = () => {
         case 'sponsor':
           navigate('/sponsor');
           break;
+        case 'mentor':
+          navigate('/mentor');
+          break;
         default:
           setError('Unknown role. Please contact support.');
       }

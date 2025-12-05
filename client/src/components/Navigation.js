@@ -1,9 +1,12 @@
 // client/src/components/Navigation.js
-import React from 'react';
+import React, { useContext } from 'react';
 import { Navbar, Nav, Container } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 
 const Navigation = () => {
+  const { user } = useContext(AuthContext);
+
   return (
     <Navbar 
       bg="custom" 
@@ -20,9 +23,21 @@ const Navigation = () => {
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto">
             <Nav.Link as={Link} to="/">Home</Nav.Link>
-            <Nav.Link as={Link} to="/student">Student Dashboard</Nav.Link>
-            <Nav.Link as={Link} to="/sponsor">Partner Portal</Nav.Link>
-            <Nav.Link as={Link} to="/admin">Admin Console</Nav.Link>
+            {user && user.role === 'Student' && (
+              <Nav.Link as={Link} to="/student">Student Dashboard</Nav.Link>
+            )}
+            {user && user.role === 'Mentor' && (
+              <Nav.Link as={Link} to="/mentor">Mentor Dashboard</Nav.Link>
+            )}
+            {user && (user.role === 'Sponsor' || user.role === 'Mentor') && (
+              <Nav.Link as={Link} to="/sponsor">Partner Portal</Nav.Link>
+            )}
+            {user && user.role === 'Faculty' && (
+              <Nav.Link as={Link} to="/faculty">Faculty Dashboard</Nav.Link>
+            )}
+            {user && user.role === 'Admin' && (
+              <Nav.Link as={Link} to="/admin">Admin Console</Nav.Link>
+            )}
           </Nav>
         </Navbar.Collapse>
       </Container>

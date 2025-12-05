@@ -9,7 +9,9 @@ const UserSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    lowercase: true,
+    trim: true
   },
   password: {
     type: String,
@@ -17,8 +19,44 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['Student', 'Faculty', 'Sponsor', 'Admin'],
+    enum: ['Student', 'Faculty', 'Sponsor', 'Admin', 'Mentor'],
     default: 'Student'
+  },
+  // Student specific fields
+  major: {
+    type: String,
+    required: function() { return this.role === 'Student'; }
+  },
+  linkedIn: {
+    type: String,
+    validate: {
+      validator: function(v) {
+        return this.role !== 'Student' || /^https?:\/\/(www\.)?linkedin\.com\/in\//.test(v);
+      },
+      message: props => `${props.value} is not a valid LinkedIn URL!`
+    }
+  },
+  skills: [{
+    type: String,
+    trim: true
+  }],
+  interests: [{
+    type: String,
+    trim: true
+  }],
+  // Mentor specific fields
+  company: {
+    type: String,
+    required: function() { return this.role === 'Mentor' || this.role === 'Sponsor'; },
+    trim: true
+  },
+  expertise: [{
+    type: String,
+    trim: true
+  }],
+  approved: {
+    type: Boolean,
+    default: function() { return this.role !== 'Mentor' && this.role !== 'Sponsor'; }
   },
   date: {
     type: Date,

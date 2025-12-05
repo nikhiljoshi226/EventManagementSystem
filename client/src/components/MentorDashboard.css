@@ -1,0 +1,151 @@
+/* TAMU Color Variables */
+:root {
+  --tamu-maroon: #500000;
+  --tamu-dark-maroon: #3d0013;
+  --tamu-light-maroon: #8f1d3e;
+  --tamu-gray: #d6d6d6;
+  --tamu-dark-gray: #333333;
+}
+
+/* Dashboard Layout */
+.mentor-dashboard {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  padding: 2rem 0;
+}
+
+.dashboard-header {
+  margin-bottom: 2rem;
+}
+
+.dashboard-header h2 {
+  color: var(--tamu-maroon);
+  font-weight: 700;
+}
+
+/* Tabs */
+.tamu-tabs .nav-link {
+  color: var(--tamu-dark-gray);
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-right: 1rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.tamu-tabs .nav-link:hover {
+  color: var(--tamu-maroon);
+  border-bottom-color: var(--tamu-gray);
+}
+
+.tamu-tabs .nav-link.active {
+  color: var(--tamu-maroon);
+  background: none;
+  border-bottom: 3px solid var(--tamu-maroon);
+  font-weight: 600;
+}
+
+/* Cards */
+.tamu-card {
+  border: 1px solid var(--tamu-gray);
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  margin-bottom: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tamu-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.tamu-card .card-header {
+  background-color: var(--tamu-maroon);
+  color: white;
+  font-weight: 600;
+  border-bottom: none;
+  padding: 1rem 1.25rem;
+}
+
+/* Buttons */
+.btn-tamu {
+  background-color: var(--tamu-maroon);
+  color: white;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-tamu:hover {
+  background-color: var(--tamu-dark-maroon);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.btn-outline-tamu {
+  color: var(--tamu-maroon);
+  border-color: var(--tamu-maroon);
+}
+
+.btn-outline-tamu:hover {
+  background-color: var(--tamu-maroon);
+  color: white;
+}
+
+/* Tables */
+.table {
+  --bs-table-striped-bg: rgba(80, 0, 0, 0.03);
+  margin-bottom: 0;
+}
+
+.table thead {
+  background-color: var(--tamu-maroon);
+  color: white;
+}
+
+.table th {
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+}
+
+/* Forms */
+.form-control:focus {
+  border-color: var(--tamu-maroon);
+  box-shadow: 0 0 0 0.25rem rgba(80, 0, 0, 0.1);
+}
+
+/* Loading States */
+.loading-spinner {
+  color: var(--tamu-maroon);
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Empty States */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--tamu-dark-gray);
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  color: var(--tamu-gray);
+  margin-bottom: 1rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .mentor-dashboard {
+    padding: 1rem 0;
+  }
+  
+  .tamu-tabs .nav-link {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+}

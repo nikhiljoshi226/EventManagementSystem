@@ -57,6 +57,7 @@ const searchSchema = {
     propertyOrdering: ["skills", "experience_years_min", "industry_focus", "limit"]
 };
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const mentorRoutes = require('./routes/mentorRoutes');
 
 const app = express();
 
@@ -69,17 +70,42 @@ app.use(cors({
   optionsSuccessStatus: 200
 }));
 
-// Request logging middleware
+// CORS Middleware
 app.use((req, res, next) => {
-  console.log(`Incoming ${req.method} request to ${req.originalUrl}`);
-  console.log('Headers:', req.headers);
-  console.log(`Incoming Request: ${req.method} ${req.url}`);
-  console.log('Headers:', req.headers);
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+});
+
+// Logging middleware
+app.use((req, res, next) => {
+  console.log('Incoming Request:', req.method, req.originalUrl);
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
   next();
 });
 
 // Body parsing middleware
 app.use(express.json());
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({ 
+    message: 'Internal Server Error',
+    error: process.env.NODE_ENV === 'development' ? err.message : {}
+  });
+});
 
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/CMIS';
@@ -257,9 +283,10 @@ app.get('/api/sponsor/registrations', (req, res) => {
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/events', eventRoutes);
-app.use('/api/registrations', registrationRoutes);
+app.use('/api', registrationRoutes);
 app.use('/api/faculty', facultyRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/mentor', mentorRoutes);
 
 // Import auth middleware
 const { protect } = require('./middleware/auth');

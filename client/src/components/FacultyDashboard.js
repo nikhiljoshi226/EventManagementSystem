@@ -394,7 +394,7 @@ const FacultyDashboard = () => {
         </Box>
 
         {/* Stats Grid */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid container spacing={3} sx={{ mb: 8 }}>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard elevation={0}>
               <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -506,7 +506,7 @@ const FacultyDashboard = () => {
         </Grid>
 
         {/* Dashboard Content */}
-        <Grid container spacing={3}>
+        <Grid container spacing={3} sx={{ mt: 8, mb: 6 }}>
           {/* Quick Actions */}
           <Grid item xs={12} lg={4}>
             <DashboardCard>
@@ -614,7 +614,7 @@ const FacultyDashboard = () => {
           <Grid item xs={12} lg={8}>
             <DashboardCard>
               <CardContent>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                   <SectionTitle variant="h6" sx={{ mb: 0 }}>
                     Recent Activity
                   </SectionTitle>
@@ -628,86 +628,117 @@ const FacultyDashboard = () => {
                   </Button>
                 </Box>
                 
-                <Box>
-                  {stats.recentActivities.map((activity, index) => {
-                    const IconComponent = activity.icon;
-                    return (
-                      <Card 
-                        key={activity.id}
-                        variant="outlined"
-                        sx={{
-                          mb: 2,
-                          borderRadius: 2,
-                          borderColor: 'divider',
-                          '&:hover': {
-                            borderColor: alpha(TAMU_MAROON, 0.5),
-                            boxShadow: `0 2px 8px ${alpha(TAMU_MAROON, 0.08)}`,
-                          },
-                          transition: 'all 0.2s ease',
-                        }}
-                      >
+                <Card 
+                  variant="outlined"
+                  sx={{
+                    borderRadius: 2,
+                    borderColor: 'divider',
+                    overflow: 'hidden',
+                    '&:hover': {
+                      borderColor: alpha(TAMU_MAROON, 0.5),
+                      boxShadow: `0 2px 12px ${alpha(TAMU_MAROON, 0.1)}`,
+                    },
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <Box 
+                    sx={{
+                      display: 'flex',
+                      overflowX: 'auto',
+                      p: 2,
+                      '& > * + *': {
+                        ml: 2, 
+                      },
+                      '&::-webkit-scrollbar': {
+                        height: '6px',
+                      },
+                      '&::-webkit-scrollbar-thumb': {
+                        backgroundColor: alpha(TAMU_MAROON, 0.3),
+                        borderRadius: '3px',
+                        '&:hover': {
+                          backgroundColor: alpha(TAMU_MAROON, 0.5),
+                        }
+                      }
+                    }}
+                  >
+                    {stats.recentActivities.map((activity) => {
+                      const IconComponent = activity.icon;
+                      return (
                         <CardActionArea 
+                          key={activity.id}
                           onClick={() => {
-                            // Handle navigation based on activity type
                             if (activity.type === 'event') navigate('/events');
                             else if (activity.type === 'announcement') navigate('/announcements');
                             else if (activity.type === 'approval') navigate('/approvals');
                           }}
+                          sx={{
+                            minWidth: 280,
+                            width: 280,
+                            flexShrink: 0,
+                            borderRadius: 1.5,
+                            p: 2,
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            '&:hover': {
+                              borderColor: alpha(TAMU_MAROON, 0.3),
+                              backgroundColor: alpha(TAMU_MAROON, 0.02),
+                            },
+                            transition: 'all 0.2s ease',
+                          }}
                         >
-                          <CardContent sx={{ '&:last-child': { pb: 2 } }}>
-                            <Box display="flex" alignItems="flex-start">
-                              <Box 
-                                sx={{
-                                  bgcolor: alpha(TAMU_MAROON, 0.1),
-                                  color: TAMU_MAROON,
-                                  p: 1.5,
-                                  borderRadius: '50%',
-                                  display: 'flex',
-                                  mr: 2,
-                                  flexShrink: 0,
+                          <Box display="flex" alignItems="flex-start">
+                            <Box 
+                              sx={{
+                                bgcolor: alpha(TAMU_MAROON, 0.1),
+                                color: TAMU_MAROON,
+                                p: 1.25,
+                                borderRadius: '50%',
+                                display: 'flex',
+                                mr: 2,
+                                flexShrink: 0,
+                                mt: 0.5,
+                              }}
+                            >
+                              <IconComponent fontSize="small" />
+                            </Box>
+                            <Box flex={1}>
+                              <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                                <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                                  {activity.title}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap', ml: 1 }}>
+                                  {new Date(activity.date).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                  })}
+                                </Typography>
+                              </Box>
+                              <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: '0.8125rem' }}>
+                                {activity.description}
+                              </Typography>
+                              <Button 
+                                size="small" 
+                                endIcon={<ArrowForwardIcon fontSize="small" />}
+                                sx={{ 
+                                  color: TAMU_MAROON, 
+                                  fontSize: '0.75rem',
+                                  p: 0,
+                                  minWidth: 'auto',
+                                  '&:hover': {
+                                    backgroundColor: 'transparent',
+                                    textDecoration: 'underline',
+                                  }
                                 }}
                               >
-                                <IconComponent fontSize="small" />
-                              </Box>
-                              <Box flex={1}>
-                                <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                                  <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-                                    {activity.title}
-                                  </Typography>
-                                  <Typography variant="caption" color="text.secondary">
-                                    {new Date(activity.date).toLocaleDateString('en-US', {
-                                      month: 'short',
-                                      day: 'numeric',
-                                    })}
-                                  </Typography>
-                                </Box>
-                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                  {activity.description}
-                                </Typography>
-                                <Button 
-                                  size="small" 
-                                  endIcon={<ArrowForwardIcon fontSize="small" />}
-                                  sx={{ 
-                                    color: TAMU_MAROON, 
-                                    fontSize: '0.75rem',
-                                    p: 0,
-                                    minWidth: 'auto',
-                                    '&:hover': {
-                                      backgroundColor: 'transparent',
-                                      textDecoration: 'underline',
-                                    }
-                                  }}
-                                >
-                                  {activity.action}
-                                </Button>
-                              </Box>
+                                {activity.action}
+                              </Button>
                             </Box>
-                          </CardContent>
+                          </Box>
                         </CardActionArea>
-                      </Card>
-                    );
-                  })}
-                </Box>
+                      );
+                    })}
+                  </Box>
+                </Card>
               </CardContent>
             </DashboardCard>
           </Grid>
