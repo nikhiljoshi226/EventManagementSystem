@@ -57,7 +57,11 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await api.post('/users/login', { email });
+      const response = await api.post('/users/login', { 
+        email,
+        password 
+      });
+      
       const { _id, role, name } = response.data;
       
       // Store user data in localStorage
@@ -83,8 +87,8 @@ const Login = () => {
           setError('Unknown role. Please contact support.');
       }
     } catch (err) {
-      setError('Login failed. Please check your credentials and try again.');
       console.error('Login error:', err);
+      setError('Login failed. Please check your credentials and try again.');
     } finally {
       setLoading(false);
     }
