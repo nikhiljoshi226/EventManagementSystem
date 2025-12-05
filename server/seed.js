@@ -3,10 +3,11 @@ const dotenv = require('dotenv');
 const User = require('./models/User');
 const Event = require('./models/Event');
 const Registration = require('./models/Registration');
+const SponsorshipRequest = require('./models/SponsorshipRequest');
 
 dotenv.config();
 
-mongoose.connect('mongodb://127.0.0.1:27017/cmis_mern_local')
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/cmis_cra_local')
   .then(async () => {
     console.log('MongoDB Connected for Seeding');
     
@@ -14,59 +15,141 @@ mongoose.connect('mongodb://127.0.0.1:27017/cmis_mern_local')
     await User.deleteMany({});
     await Event.deleteMany({});
     await Registration.deleteMany({});
+    await SponsorshipRequest.deleteMany({});
     console.log('Cleared all collections');
 
-    // Create 3 Key Users with SIMPLE emails
+    // Create Users
     const users = await User.insertMany([
+      // Students
       { 
         name: "Alex Student", 
-        email: "student@tamu.edu", 
-        role: "Student", 
+        email: "abc@bcd.acom", 
+        role: "Student",
+        password: 'password123',
         major: "MIS",
+        linkedIn: "https://linkedin.com/in/alex-demo",
+        skills: ["Python", "React", "Data Visualization"],
         interests: ["Cybersecurity"],
-        password: 'password123' // Will be hashed by pre-save hook
+        approved: true
+      },
+      {
+        name: "Sarah Student",
+        email: "sarh@ch.com",
+        role: "Student",
+        password: 'password123',
+        major: "Supply Chain",
+        linkedIn: "https://linkedin.com/in/sarah-demo",
+        skills: ["SAP", "Excel", "Logistics"],
+        interests: ["Energy", "AI"],
+        approved: true
+      },
+      // Mentor
+      { 
+        name: "Mike Mentor",
+        email: "mentor@yh.com",
+        role: "Mentor",
+        password: 'password123',
+        company: "Google",
+        expertise: ["Cloud Architecture"],
+        approved: true
       },
       { 
-        name: "Chevron Recruiter", 
-        email: "sponsor@tamu.edu", 
-        role: "Sponsor", 
-        tier: "ExaByte",
-        industry: "Energy",
-        password: 'password123'
+        name: "Nikhil Joshi",
+        email: "joshinikhil314@gmail.com",
+        role: "Mentor",
+        password: 'password123',
+        company: "Google",
+        expertise: ["React JS"],
+        approved: true
       },
+      // Faculty
       { 
-        name: "Dr. Gomillion", 
-        email: "faculty@tamu.edu", 
+        name: "Dr. Manogna", 
+        email: "faculty@ch.com", 
         role: "Faculty",
-        expertise: ["Cloud"],
-        password: 'password123'
+        password: 'password123',
+        company: "Texas A&M University",
+        approved: true
+      },
+      { 
+        name: "Dr. Kale", 
+        email: "mihirkale8@gmail.com", 
+        role: "Faculty",
+        password: 'password123',
+        company: "Texas A&M University",
+        approved: true
+      },
+      // Admin
+      { 
+        name: "Admin", 
+        email: "amcd@op.du", 
+        role: "Admin",
+        password: 'password123',
+        approved: true
       }
     ]);
 
-    // Create 1 Event
-    const event = await Event.create({
-      title: "Cybersecurity Summit",
-      date: new Date('2025-12-05'),
-      location: "Wehner 113",
-      description: "Learn about network security.",
-      tags: ["Cybersecurity"],
-      status: "Upcoming"
+    console.log('Created users:', users.map(u => `${u.name} (${u.role})`));
+
+    // Create events
+    const events = await Event.insertMany([
+      {
+        title: 'Cloud Computing Summit',
+        description: 'Learn about the latest in cloud technologies',
+        date: new Date('2024-03-15'),
+        location: 'Zachry Building',
+        capacity: 150,
+        registrationDeadline: new Date('2024-03-01')
+      },
+      {
+        title: 'Energy Future Panel',
+        description: 'Discussion on the future of energy technology',
+        date: new Date('2024-04-20'),
+        location: 'MSC',
+        capacity: 100,
+        registrationDeadline: new Date('2024-04-10')
+      }
+    ]);
+
+    console.log('Created events');
+
+    // Get references to users
+    const alex = users.find(u => u.email === 'abc@bcd.acom');
+    const sarah = users.find(u => u.email === 'sarh@ch.com');
+    const mike = users.find(u => u.email === 'mentor@yh.com');
+
+    // Register students for events
+    await Registration.insertMany([
+      {
+        user: alex._id,
+        event: events[0]._id, // Cloud Computing Summit
+        status: 'Registered'
+      },
+      {
+        user: sarah._id,
+        event: events[0]._id, // Cloud Computing Summit
+        status: 'Registered'
+      }
+    ]);
+
+    console.log('Created registrations');
+
+    // Create a sample sponsorship request
+    await SponsorshipRequest.create({
+      mentor: mike._id,
+      eventTitle: 'Cloud Computing Summit',
+      description: 'Sponsorship for student awards and catering',
+      caseStudy: 'How Google Cloud is transforming education',
+      benefits: ['Brand Exposure', 'Recruitment', 'Thought Leadership'],
+      tier: 'PetaByte',
+      status: 'Pending'
     });
 
-    // Register Alex for the event
-    await Registration.create({
-      user: users[0]._id,
-      event: event._id
-    });
+    console.log('Created sample sponsorship request');
 
-    console.log('\n=== Database Reset Complete ===');
-    console.log('Use these test accounts to login:');
-    console.log('1. student@tamu.edu (Student)');
-    console.log('2. sponsor@tamu.edu (Sponsor)');
-    console.log('3. faculty@tamu.edu (Faculty)');
-    console.log('Password for all: password123\n');
+    console.log('\n=== Database Seeded Successfully ===');
     
-    process.exit();
+    process.exit(0);
   })
   .catch(err => {
     console.error('Seeding error:', err);

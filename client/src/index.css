@@ -1,33 +1,155 @@
 /* client/src/index.css */
+:root {
+  --tamu-maroon: #500000;
+  --tamu-dark-maroon: #3C0000;
+  --tamu-light-maroon: #8f1d3e;
+  --tamu-gray: #f8f9fa;
+  --tamu-dark-gray: #333333;
+  --tamu-gold: #FFC72C;
+}
+
 body {
   margin: 0;
   font-family: 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #333;
+  color: var(--tamu-dark-gray);
   line-height: 1.6;
+  background-color: #f5f5f5;
 }
 
 a {
   text-decoration: none;
-  color: #500000;
+  color: var(--tamu-maroon);
   transition: color 0.3s ease;
 }
 
 a:hover {
-  color: #300000;
+  color: var(--tamu-dark-maroon);
+  text-decoration: underline;
 }
 
-/* TAMU Button Styles */
-.MuiButton-contained {
-  text-transform: none;
+/* TAMU Tabs */
+.tamu-tabs .nav-link {
+  color: var(--tamu-maroon);
+  font-weight: 600;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 1rem 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.tamu-tabs .nav-link:hover {
+  color: var(--tamu-dark-maroon);
+  background-color: rgba(80, 0, 0, 0.05);
+  border-bottom-color: rgba(80, 0, 0, 0.2);
+}
+
+.tamu-tabs .nav-link.active {
+  color: var(--tamu-maroon);
+  background-color: transparent;
+  border-bottom-color: var(--tamu-maroon);
+  border-bottom: 3px solid var(--tamu-maroon);
+  font-weight: 700;
+}
+
+/* Dashboard Cards */
+.dashboard-card {
+  border: none;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.dashboard-stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.dashboard-stat-card .card-header {
+  background-color: white;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  font-weight: 600;
+  color: var(--tamu-maroon);
+  padding: 1rem 1.25rem;
+}
+
+.dashboard-stat-card .card-body {
+  padding: 1.5rem;
+}
+
+/* Buttons */
+.btn-tamu {
+  background-color: var(--tamu-maroon);
+  color: white;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.25rem;
   font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-tamu:hover {
+  background-color: var(--tamu-dark-maroon);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-outline-tamu {
+  color: var(--tamu-maroon);
+  border-color: var(--tamu-maroon);
+  background-color: transparent;
+}
+
+.btn-outline-tamu:hover {
+  background-color: var(--tamu-maroon);
+  color: white;
+}
+
+/* Tables */
+.table {
+  --bs-table-striped-bg: rgba(80, 0, 0, 0.02);
+  margin-bottom: 0;
+}
+
+.table thead {
+  background-color: var(--tamu-maroon);
+  color: white;
+}
+
+.table th {
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.8rem;
   letter-spacing: 0.5px;
 }
 
+/* Forms */
+.form-control:focus {
+  border-color: var(--tamu-maroon);
+  box-shadow: 0 0 0 0.25rem rgba(80, 0, 0, 0.1);
+}
+
+/* Badges */
+.badge-tamu {
+  background-color: var(--tamu-maroon);
+  color: white;
+  font-weight: 500;
+  padding: 0.35em 0.65em;
+  font-size: 0.75em;
+}
+
 /* Responsive typography */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   html {
     font-size: 14px;
+  }
+  
+  .tamu-tabs .nav-link {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
   }
 }
