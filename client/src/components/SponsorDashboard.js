@@ -48,6 +48,7 @@ import {
 } from '@mui/icons-material';
 import { api, getAuthConfig } from '../utils/api';
 import Layout from './Layout';
+import StudentSearch from './StudentSearch';
 
 // TAMU Color Palette
 const TAMU_MAROON = '#500000';
@@ -179,7 +180,12 @@ const SponsorDashboard = () => {
       
       // Try to fetch real data first
       try {
-        const response = await api.get('/dashboard/sponsor', getAuthConfig());
+        const response = await api.get('/sponsor/registrations', {
+          headers: {
+            'x-user-id': 'demo-user-123',
+            'x-demo-role': 'sponsor'
+          }
+        });
         if (response.data) {
           setRegistrations(response.data.registrations || []);
           return;
@@ -374,6 +380,11 @@ const SponsorDashboard = () => {
               </Box>
             </Grid>
           </Grid>
+        </Box>
+
+        {/* Student Search */}
+        <Box sx={{ mb: 4 }}>
+          <StudentSearch />
         </Box>
 
         {/* Stats Grid */}

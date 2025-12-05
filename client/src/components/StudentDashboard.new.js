@@ -49,7 +49,7 @@ import {
   Search as SearchIcon,
   FilterList as FilterListIcon
 } from '@mui/icons-material';
-import { api, getAuthConfig } from '../utils/api';
+import { api } from '../utils/api';
 import Layout from './Layout';
 
 // TAMU Color Palette
@@ -215,7 +215,7 @@ const StudentDashboard = () => {
       // Try to fetch real data first
       try {
         const [eventsResponse] = await Promise.all([
-          api.get('/events', getAuthConfig())
+          api.get('/events')
         ]);
         
         if (eventsResponse?.data) {

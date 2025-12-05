@@ -4,13 +4,16 @@ const User = require('../models/User');
 // Simple authentication middleware for demo purposes
 const protect = async (req, res, next) => {
   try {
-    // For demo purposes, we'll use a simple user object
-    // In a real app, this would come from session/token
-    const userRole = req.headers['x-demo-role'] || 'student'; // Default to student for demo
+    // Get user ID and role from headers
+    const userId = req.headers['x-user-id'];
+    const userRole = req.headers['x-demo-role'];
     
-    // Get user ID from header or use a default
-    const userId = req.headers['x-user-id'] || 'demo-user-id';
+    if (!userId || !userRole) {
+      return res.status(401).json({ message: 'Missing authentication headers' });
+    }
     
+    // For demo purposes, we'll create a simple user object
+    // In a real app, you would verify the user exists in the database
     req.user = {
       id: userId,
       role: userRole.toLowerCase() // Ensure role is lowercase for consistency
