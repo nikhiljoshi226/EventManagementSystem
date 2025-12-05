@@ -179,7 +179,7 @@ const SponsorDashboard = () => {
       
       // Try to fetch real data first
       try {
-        const response = await api.get('/dashboard/sponsor', getAuthConfig());
+        const response = await api.get('/dashboard/sponsor');
         if (response.data) {
           setRegistrations(response.data.registrations || []);
           return;

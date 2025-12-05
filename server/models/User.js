@@ -2,6 +2,13 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const UserSchema = new mongoose.Schema({
+  resumeUrl: String,
+    skills: [String],
+    interests: [String],
+    embedding: {
+        type: [Number],
+        select: false
+    },
   name: {
     type: String,
     required: true
@@ -47,7 +54,7 @@ const UserSchema = new mongoose.Schema({
   // Mentor specific fields
   company: {
     type: String,
-    required: function() { return this.role === 'Mentor' || this.role === 'Sponsor'; },
+    required: function() { return this.role !== 'Student' || this.role === 'Mentor' || this.role === 'Sponsor'; },
     trim: true
   },
   expertise: [{

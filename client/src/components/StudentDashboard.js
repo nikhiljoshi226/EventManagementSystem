@@ -1,932 +1,375 @@
-// client/src/components/StudentDashboard.js
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import axios from 'axios';
 import {
-  Container, 
-  Grid, 
-  Card, 
-  CardContent, 
-  Typography, 
-  Button, 
-  Box, 
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Typography,
+  Grid,
   CircularProgress,
-  Paper,
-  Divider,
+  Avatar,
   Chip,
-  useTheme,
-  useMediaQuery,
+  Divider,
+  Tabs,
+  Tab,
   LinearProgress,
-  Badge,
-  CardActionArea,
-  Alert
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
 } from '@mui/material';
-import { styled, alpha } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
 import { 
-  Event as EventIcon, 
-  School as SchoolIcon, 
-  Announcement as AnnouncementIcon,
-  CalendarToday as CalendarIcon,
-  ArrowForward as ArrowForwardIcon,
-  CheckCircle as CheckCircleIcon,
-  Assignment as AssignmentIcon,
-  TrendingUp as TrendingUpIcon,
-  Group as GroupIcon,
-  Bookmark as BookmarkIcon,
-  EventAvailable as EventAvailableIcon
+  School as SchoolIcon,
+  Work as WorkIcon,
+  Code as CodeIcon,
+  Psychology as PsychologyIcon,
+  Upload as UploadIcon,
+  Search as SearchIcon
 } from '@mui/icons-material';
-import { api, getAuthConfig } from '../utils/api';
-import Layout from './Layout';
 
-// TAMU Color Palette
-const TAMU_MAROON = '#500000';
-const TAMU_WHITE = '#FFFFFF';
-const TAMU_GRAY = '#D6D3C4';
-const TAMU_ACCENT = '#FFD600';
+// n8n webhook URL - replace with your actual n8n webhook URL
+const N8N_RESUME_WEBHOOK = 'https://ccgroup6.app.n8n.cloud/webhook-test/upload-resume';
 
-// Custom styled components with TAMU theme
-const DashboardCard = styled(Card)(({ theme }) => ({
+// Styled Components
+const MentorCard = styled(Card)(({ theme }) => ({
   height: '100%',
   display: 'flex',
   flexDirection: 'column',
-  borderRadius: 12,
-  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-  transition: 'all 0.3s ease',
+  transition: 'transform 0.3s ease-in-out',
   '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)'
+    transform: 'translateY(-5px)',
+    boxShadow: theme.shadows[8]
   }
 }));
 
-const StatCard = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(3),
-  height: '100%',
-  borderRadius: 12,
-  background: 'white',
-  boxShadow: '0 2px 12px rgba(0, 0, 0, 0.05)',
-  transition: 'all 0.3s ease',
-  '&:hover': {
-    transform: 'translateY(-2px)',
-    boxShadow: '0 6px 16px rgba(0, 0, 0, 0.1)'
-  }
-}));
-
-const SectionTitle = styled(Typography)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: theme.spacing(1.5),
-  color: TAMU_MAROON,
-  marginBottom: theme.spacing(3),
-  fontWeight: 600,
-  '& svg': {
-    color: TAMU_ACCENT
-  }
-}));
-
-// Mock data for events
-const mockEvents = [
-  {
-    _id: '1',
-    title: 'Web Development Workshop',
-    date: new Date(Date.now() + 86400000).toISOString(),
-    type: 'Workshop',
-    location: 'Zachry 123',
-    description: 'Learn modern web development techniques',
-    tags: ['Web Dev', 'Coding']
-  },
-  {
-    _id: '2',
-    title: 'Networking Mixer',
-    date: new Date(Date.now() + 172800000).toISOString(),
-    type: 'Networking',
-    location: 'MSC 2300',
-    description: 'Connect with industry professionals',
-    tags: ['Career', 'Networking']
-  },
-  {
-    _id: '3',
-    title: 'Research Symposium',
-    date: new Date(Date.now() + 259200000).toISOString(),
-    type: 'Conference',
-    location: 'ILSB Auditorium',
-    description: 'Present your research to faculty and peers',
-    tags: ['Research', 'Presentation']
-  }
-];
+const MatchScoreBadge = styled('div')(({ score }) => {
+  let color;
+  if (score >= 80) color = '#4caf50'; // Green
+  else if (score >= 60) color = '#ff9800'; // Orange
+  else color = '#f44336'; // Red
+  
+  return {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: color,
+    color: 'white',
+    borderRadius: '50%',
+    width: 40,
+    height: 40,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: 'bold',
+    fontSize: '0.8rem'
+  };
+});
 
 const StudentDashboard = () => {
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [filter, setFilter] = useState('all');
-  const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || { 
-    name: 'Student', 
-    email: 'student@tamu.edu',
-    role: 'student',
-    _id: 'student-demo-id'
-  });
+  const [activeTab, setActiveTab] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [openUploadDialog, setOpenUploadDialog] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uin, setUin] = useState('');
 
-  // Stats state
-  const [stats, setStats] = useState({
-    registeredEvents: 5,
-    upcomingEvents: 3,
-    completedHours: 12,
-    announcements: 2
-  });
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    setSelectedFile(file);
+  };
 
-  // Check authentication and fetch data on component mount
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        setLoading(true);
-        const userData = JSON.parse(localStorage.getItem('user'));
-        
-        // For development: Temporarily allow access without role check
-        if (!userData) {
-          console.log('No user data found, using demo student account');
-          const demoUser = { 
-            name: 'Demo Student', 
-            email: 'student@tamu.edu',
-            role: 'student',
-            _id: 'student-demo-id'
-          };
-          setUser(demoUser);
-          localStorage.setItem('user', JSON.stringify(demoUser));
-          await fetchDashboardData();
-          return;
-        }
-        
-        // Set user and fetch data regardless of role for now
-        setUser(userData);
-        await fetchDashboardData();
-        
-      } catch (error) {
-        console.error('Authentication check failed, using demo mode:', error);
-        // Continue in demo mode instead of redirecting
-        const demoUser = { 
-          name: 'Demo Student', 
-          email: 'student@tamu.edu',
-          role: 'student',
-          _id: 'student-demo-id'
-        };
-        setUser(demoUser);
-        localStorage.setItem('user', JSON.stringify(demoUser));
-        await fetchDashboardData();
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleSubmitResume = async () => {
+    if (!selectedFile) {
+      alert('Please select a file first');
+      return;
+    }
+
+    if (!uin) {
+      alert('Please enter your UIN');
+      return;
+    }
+
+    console.log('Preparing to upload file:', selectedFile.name);
     
-    checkAuth();
-  }, [navigate]);
+    const formData = new FormData();
+    formData.append('resume', selectedFile);
+    formData.append('studentName', 'Student User');
+    formData.append('uin', uin);
+    
+    // Log form data entries
+    for (let pair of formData.entries()) {
+      console.log(pair[0] + ': ', pair[1]);
+    }
+    
+    setIsUploading(true);
+    console.log('Sending request to n8n webhook:', N8N_RESUME_WEBHOOK);
 
-  // Fetch dashboard data
-  const fetchDashboardData = async () => {
     try {
-      // Try to fetch real data first
-      try {
-        const [eventsResponse] = await Promise.all([
-          api.get('/events', getAuthConfig())
-        ]);
-        
-        if (eventsResponse?.data) {
-          setEvents(eventsResponse.data);
+      // Send to n8n workflow only
+      const response = await axios.post(N8N_RESUME_WEBHOOK, formData, {
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json'
         }
-        
-      } catch (apiError) {
-        console.warn('Using mock data due to API error:', apiError);
-        // Fallback to mock data
-        setEvents(mockEvents);
+      });
+      
+      console.log('n8n webhook response status:', response.status);
+      console.log('n8n webhook response data:', response.data);
+      
+      // Reset form
+      setSelectedFile(null);
+      setUin('');
+      setOpenUploadDialog(false);
+      
+      alert('Resume uploaded! AI analysis started. You will be notified when matches are ready.');
+    } catch (error) {
+      console.error('Upload to n8n failed:', error);
+      
+      let errorMessage = 'Upload failed. Please try again.';
+      if (error.response) {
+        errorMessage += ` (${error.response.status} ${error.response.statusText})`;
+        if (error.response.data?.message) {
+          errorMessage += `: ${error.response.data.message}`;
+        }
+      } else if (error.request) {
+        errorMessage += ' No response received from server. Please check your connection.';
+      } else {
+        errorMessage += ` Error: ${error.message}`;
       }
       
-    } catch (err) {
-      console.error('Error in fetchDashboardData:', err);
-      setError('Failed to load dashboard data. Using demo data instead.');
+      alert(errorMessage);
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  // Format date helper
-  const formatDate = (dateString) => {
-    const options = { 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+  const handleProcessResume = async () => {
+    try {
+      setIsProcessing(true);
+      alert('Please upload a resume first to find matches.');
+    } catch (error) {
+      console.error('Error processing resume:', error);
+      alert('Error processing resume. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  // Show loading state only if we don't have any data yet
-  if (loading && !events.length) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh" flexDirection="column" gap={2}>
-        <CircularProgress />
-        <Typography color="text.secondary">Loading dashboard...</Typography>
-      </Box>
-    );
-  }
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 0: // Dashboard tab
+        return (
+          <>
+            <Box mb={4}>
+              <Typography variant="h4" gutterBottom>
+                Find Your Perfect Mentor
+              </Typography>
+              <Typography color="textSecondary" paragraph>
+                Get matched with industry professionals based on your skills and interests
+              </Typography>
+              
+              <Box display="flex" gap={2} mt={3} mb={4} flexWrap="wrap">
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<UploadIcon />}
+                  onClick={() => setOpenUploadDialog(true)}
+                >
+                  Upload Resume
+                </Button>
 
-  if (error) {
-    return (
-      <Box my={4}>
-        <Alert severity="error">{error}</Alert>
-      </Box>
-    );
-  }
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  startIcon={<SearchIcon />}
+                  onClick={handleProcessResume}
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? 'Finding Matches...' : 'Find Matches'}
+                </Button>
+              </Box>
 
-  return (
-    <Box sx={{ 
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      backgroundColor: '#f5f7fa'
-    }}>
-      {/* Header Section */}
-      <Box sx={{ flexShrink: 0 }}>
-        <Container maxWidth="xl" sx={{ py: 2 }}>
-          <Typography variant="h5" fontWeight="bold" color={TAMU_MAROON}>
-            CMIS Student Portal
-          </Typography>
-        </Container>
-      </Box>
-      
-      {/* Main Content */}
-      <Container maxWidth="xl" sx={{ py: 3, flex: 1 }}>
-        <Card elevation={3} sx={{ 
-          borderRadius: 2,
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden'
-        }}>
-        {/* Header with Welcome Message */}
-        <Box 
-          sx={{ 
-            bgcolor: TAMU_MAROON,
-            color: 'white',
-            p: { xs: 3, md: 4 },
-            borderRadius: 2,
-            mb: 4,
-            boxShadow: 3,
-            background: `linear-gradient(135deg, ${TAMU_MAROON} 0%, ${alpha(TAMU_MAROON, 0.9)} 100%)`,
-            overflow: 'hidden',
-            position: 'relative',
-            '&:before': {
-              content: '""',
-              position: 'absolute',
-              top: 0,
-              right: 0,
-              bottom: 0,
-              left: 0,
-              background: 'radial-gradient(circle at 90% 10%, rgba(255,255,255,0.1) 0%, transparent 40%)',
-              zIndex: 0,
-            }
-          }}
-        >
-          <Grid container spacing={3} alignItems="center" position="relative" zIndex={1}>
-            <Grid item xs={12} md={8}>
-              <Box sx={{ maxWidth: '800px' }}>
-                <Typography 
-                  variant="h4" 
-                  component="h1" 
-                  fontWeight={700} 
-                  sx={{
-                    fontSize: { xs: '1.75rem', sm: '2rem', md: '2.25rem' },
-                    lineHeight: 1.2,
-                    mb: 2
-                  }}
-                >
-                  Welcome back,{' '}
-                  <Box component="span" sx={{ color: TAMU_ACCENT }}>
-                    {user?.name?.split(' ')[0] || 'Student'}!
-                  </Box>
-                </Typography>
-                
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    opacity: 0.9, 
-                    mb: 4, 
-                    maxWidth: '90%',
-                    fontSize: { xs: '1rem', sm: '1.1rem' },
-                    lineHeight: 1.6
-                  }}
-                >
-                  Track your events, registrations, and announcements in one place.
-                </Typography>
-                
-                <Box display="flex" gap={2} flexWrap="wrap">
-                  <Button 
-                    variant="contained" 
-                    size="large"
-                    sx={{
-                      bgcolor: TAMU_ACCENT,
-                      color: TAMU_MAROON,
-                      fontWeight: 700,
-                      '&:hover': {
-                        bgcolor: alpha(TAMU_ACCENT, 0.9),
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 6px 16px rgba(0,0,0,0.2)',
-                      },
-                      px: { xs: 3, sm: 4 },
-                      py: 1.5,
-                      borderRadius: 2,
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      minWidth: { xs: '100%', sm: 'auto' },
-                      textAlign: 'center',
-                    }}
-                    startIcon={<EventIcon />}
-                    onClick={() => navigate('/events')}
-                  >
-                    Browse Events
-                  </Button>
-                  
-                  <Button 
-                    variant="outlined" 
-                    size="large"
-                    sx={{
-                      color: 'white',
-                      borderColor: 'rgba(255,255,255,0.4)',
-                      '&:hover': {
-                        bgcolor: 'rgba(255,255,255,0.15)',
-                        borderColor: 'white',
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                      },
-                      px: { xs: 3, sm: 4 },
-                      py: 1.5,
-                      borderRadius: 2,
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      minWidth: { xs: '100%', sm: 'auto' },
-                      textAlign: 'center',
-                    }}
-                    startIcon={<SchoolIcon />}
-                    onClick={() => navigate('/my-courses')}
-                  >
-                    My Courses
-                  </Button>
-                </Box>
-              </Box>
-            </Grid>
-          </Grid>
-        </Box>
-      
-      {/* Main Content */}
-      <Box sx={{ 
-        flex: '1 0 auto', 
-        py: 4, 
-        backgroundColor: '#f5f7fa',
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: 'calc(100vh - 64px)' // Adjust based on your header height
-      }}>
-        <Container maxWidth="xl" sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-          {/* Stats Grid */}
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard elevation={0}>
-              <Box display="flex" alignItems="center" justifyContent="space-between">
-                <Box>
-                  <Typography variant="h4" component="div" fontWeight={800} sx={{ mb: 0.5 }}>
-                    {stats.registeredEvents}
-                  </Typography>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Registered Events
+              {isProcessing && (
+                <Box mb={3}>
+                  <LinearProgress />
+                  <Typography variant="body2" color="textSecondary" align="center" mt={1}>
+                    Analyzing your resume and finding the best mentor matches...
                   </Typography>
                 </Box>
-                <Box
-                  sx={{
-                    bgcolor: alpha(TAMU_MAROON, 0.1),
-                    color: TAMU_MAROON,
-                    p: 1.5,
-                    borderRadius: '50%',
-                    display: 'flex',
-                  }}
-                >
-                  <EventIcon />
-                </Box>
-              </Box>
-            </StatCard>
-          </Grid>
-          
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard elevation={0}>
-              <Box display="flex" alignItems="center" justifyContent="space-between">
-                <Box>
-                  <Typography variant="h4" component="div" fontWeight={800} sx={{ mb: 0.5 }}>
-                    {stats.upcomingEvents}
-                  </Typography>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Upcoming Events
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    bgcolor: alpha('#1976d2', 0.1),
-                    color: '#1976d2',
-                    p: 1.5,
-                    borderRadius: '50%',
-                    display: 'flex',
-                  }}
-                >
-                  <CalendarIcon />
-                </Box>
-              </Box>
-            </StatCard>
-          </Grid>
-          
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard elevation={0}>
-              <Box display="flex" alignItems="center" justifyContent="space-between">
-                <Box>
-                  <Typography variant="h4" component="div" fontWeight={800} sx={{ mb: 0.5 }}>
-                    {stats.completedHours}
-                  </Typography>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Completed Hours
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    bgcolor: alpha('#ed6c02', 0.1),
-                    color: '#ed6c02',
-                    p: 1.5,
-                    borderRadius: '50%',
-                    display: 'flex',
-                  }}
-                >
-                  <CheckCircleIcon />
-                </Box>
-              </Box>
-            </StatCard>
-          </Grid>
-          
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard elevation={0}>
-              <Box>
-                <Typography variant="h4" component="div" fontWeight={800} sx={{ mb: 0.5 }}>
-                  {stats.announcements}
-                </Typography>
-                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                  New Announcements
-                </Typography>
-                <Box sx={{ width: '100%' }}>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={(stats.announcements / 5) * 100} 
-                    sx={{ 
-                      height: 8, 
-                      borderRadius: 4,
-                      '& .MuiLinearProgress-bar': {
-                        background: `linear-gradient(90deg, ${TAMU_MAROON}, ${TAMU_ACCENT})`,
-                        borderRadius: 4,
-                      },
-                      backgroundColor: alpha(TAMU_MAROON, 0.1),
-                      mb: 1
-                    }} 
-                  />
-                  <Typography variant="body2" color="text.secondary">
-                    Upcoming Events
-                  </Typography>
-                  <Button 
-                    color="primary" 
-                    endIcon={<ArrowForwardIcon fontSize="small" />}
-                    size="small"
-                    sx={{ 
-                      color: TAMU_MAROON,
-                      fontSize: '0.75rem',
-                      minWidth: 'auto',
-                      p: '2px 8px'
-                    }}
-                    onClick={() => navigate('/events')}
-                  >
-                    View All
-                  </Button>
-                </Box>
-                
-                {loading ? (
-                  <Box display="flex" justifyContent="center" p={4}>
-                    <CircularProgress />
-                  </Box>
-                ) : error ? (
-                  <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
-                ) : events.length > 0 ? (
-                  <Box sx={{ '& > *:not(:last-child)': { mb: 2 } }}>
-                    {events.slice(0, 3).map((event) => (
-                      <Card 
-                        key={event._id} 
-                        sx={{
-                          cursor: 'pointer',
-                          transition: 'transform 0.2s, box-shadow 0.2s',
-                          '&:hover': {
-                            borderColor: alpha(TAMU_MAROON, 0.5),
-                            boxShadow: `0 2px 8px ${alpha(TAMU_MAROON, 0.08)}`,
-                          },
-                        }}
-                      >
-                        <CardActionArea onClick={() => navigate(`/events/${event._id}`)}>
-                          <CardContent sx={{ 
-                flex: 1, 
-                display: 'flex', 
-                flexDirection: 'column',
-                minHeight: 0,
-                overflowY: 'auto',
-                '&::-webkit-scrollbar': {
-                  width: '6px',
-                },
-                '&::-webkit-scrollbar-track': {
-                  background: '#f1f1f1',
-                  borderRadius: '4px',
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  background: '#888',
-                  borderRadius: '4px',
-                },
-                '&::-webkit-scrollbar-thumb:hover': {
-                  background: '#555',
-                }
-              }}>
-                            <Grid container spacing={2} alignItems="center">
-                              <Grid item xs={12} sm={3}>
-                                <Box 
-                                  display="flex" 
-                                  alignItems="center" 
-                                  color={TAMU_MAROON}
-                                  mb={1}
-                                >
-                                  <CalendarIcon fontSize="small" sx={{ mr: 1, opacity: 0.8 }} />
-                                  <Typography variant="body2" fontWeight={500}>
-                                    {formatDate(event.date)}
-                                  </Typography>
-                                </Box>
-                                <Chip 
-                                  label={event.type} 
-                                  size="small" 
-                                  sx={{ 
-                                    backgroundColor: alpha(TAMU_MAROON, 0.1),
-                                    color: TAMU_MAROON,
-                                    fontWeight: 500,
-                                    fontSize: '0.7rem',
-                                    height: 24
-                                  }}
-                                />
-                              </Grid>
-                              <Grid item xs={12} sm={9}>
-                                <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                                  {event.title}
-                                </Typography>
-                                <Box display="flex" alignItems="center" mb={1}>
-                                  <SchoolIcon fontSize="small" sx={{ mr: 1, opacity: 0.7, color: 'text.secondary' }} />
-                                  <Typography variant="body2" color="text.secondary">
-                                    {event.location}
-                                  </Typography>
-                                </Box>
-                                <Typography variant="body2" color="text.secondary" paragraph>
-                                  {event.description?.length > 100 
-                                    ? `${event.description.substring(0, 100)}...` 
-                                    : event.description}
-                                </Typography>
-                                <Box display="flex" flexWrap="wrap" gap={1} mb={1}>
-                                  {event.tags?.map((tag, index) => (
-                                    <Chip 
-                                      key={index} 
-                                      label={tag} 
-                                      size="small" 
-                                      sx={{ 
-                                        backgroundColor: alpha(TAMU_MAROON, 0.1),
-                                        color: TAMU_MAROON,
-                                        fontWeight: 500,
-                                        fontSize: '0.7rem',
-                                        height: 24,
-                                        '& .MuiChip-label': {
-                                          px: 1
-                                        }
-                                      }} 
-                                    />
-                                  ))}
-                                </Box>
-                              </Grid>
-                            </Grid>
-                          </CardContent>
-                        </CardActionArea>
-                      </Card>
-                    ))}
-                  </Box>
-                ) : (
-                  <Box textAlign="center" py={4}>
-                    <Typography color="text.secondary" gutterBottom>
-                      No upcoming events found.
-                    </Typography>
-                    <Button 
-                      variant="outlined" 
-                      color="primary" 
-                      size="small"
-                      sx={{ mt: 1 }}
-                      onClick={() => navigate('/events')}
-                    >
-                      Browse Events
-                    </Button>
-                  </Box>
-                )}
-                
-
-            {/* Quick Actions */}
-            <DashboardCard sx={{ mt: 3 }}>
-              <CardContent sx={{ 
-                flex: 1, 
-                display: 'flex', 
-                flexDirection: 'column',
-                minHeight: 0,
-                overflowY: 'auto',
-                '&::-webkit-scrollbar': {
-                  width: '6px',
-                },
-                '&::-webkit-scrollbar-track': {
-                  background: '#f1f1f1',
-                  borderRadius: '4px',
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  background: '#888',
-                  borderRadius: '4px',
-                },
-                '&::-webkit-scrollbar-thumb:hover': {
-                  background: '#555',
-                }
-              }}>
-                <SectionTitle variant="h6">
-                  <AssignmentIcon /> Quick Actions
-                </SectionTitle>
-                <Box display="flex" flexDirection="column" gap={2}>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    startIcon={<EventAvailableIcon />}
-                    sx={{
-                      justifyContent: 'flex-start',
-                      py: 1.5,
-                      borderColor: alpha(TAMU_MAROON, 0.3),
-                      color: TAMU_MAROON,
-                      '&:hover': {
-                        bgcolor: alpha(TAMU_MAROON, 0.05),
-                        borderColor: TAMU_MAROON,
-                        transform: 'translateY(-2px)',
-                        boxShadow: `0 4px 12px ${alpha(TAMU_MAROON, 0.1)}`,
-                      },
-                      transition: 'all 0.2s ease',
-                    }}
-                    onClick={() => navigate('/events')}
-                  >
-                    Register for Events
-                  </Button>
-                  
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    startIcon={<BookmarkIcon />}
-                    sx={{
-                      justifyContent: 'flex-start',
-                      py: 1.5,
-                      borderColor: alpha(TAMU_MAROON, 0.3),
-                      color: TAMU_MAROON,
-                      '&:hover': {
-                        bgcolor: alpha(TAMU_MAROON, 0.05),
-                        borderColor: TAMU_MAROON,
-                        transform: 'translateY(-2px)',
-                        boxShadow: `0 4px 12px ${alpha(TAMU_MAROON, 0.1)}`,
-                      },
-                      transition: 'all 0.2s ease',
-                    }}
-                    onClick={() => navigate('/saved-events')}
-                  >
-                    View Saved Events
-                  </Button>
-                  
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    startIcon={<GroupIcon />}
-                    sx={{
-                      justifyContent: 'flex-start',
-                      py: 1.5,
-                      borderColor: alpha(TAMU_MAROON, 0.3),
-                      color: TAMU_MAROON,
-                      '&:hover': {
-                        bgcolor: alpha(TAMU_MAROON, 0.05),
-                        borderColor: TAMU_MAROON,
-                        transform: 'translateY(-2px)',
-                        boxShadow: `0 4px 12px ${alpha(TAMU_MAROON, 0.1)}`,
-                      },
-                      transition: 'all 0.2s ease',
-                    }}
-                    onClick={() => navigate('/student-groups')}
-                  >
-                    Join Student Groups
-                  </Button>
-                </Box>
-                
-              </CardContent>
-            </DashboardCard>
+              )}
             </Box>
-            </StatCard>
-          </Grid>
-          
-        
 
-          {/* Announcements and Quick Links */}
-          <Grid item xs={12} lg={4} sx={{ display: 'flex', flexDirection: 'column', gap: 3, minHeight: 0 }}>
-            <DashboardCard sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-              <CardContent sx={{ 
-                flex: 1, 
-                display: 'flex', 
-                flexDirection: 'column',
-                minHeight: 0,
-                overflowY: 'auto',
-                '&::-webkit-scrollbar': {
-                  width: '6px',
-                },
-                '&::-webkit-scrollbar-track': {
-                  background: '#f1f1f1',
-                  borderRadius: '4px',
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  background: '#888',
-                  borderRadius: '4px',
-                },
-                '&::-webkit-scrollbar-thumb:hover': {
-                  background: '#555',
-                }
-              }}>
-                <SectionTitle variant="subtitle1" sx={{ mb: 1, fontSize: '0.8125rem' }}>
-                  <AnnouncementIcon fontSize="small" sx={{ mr: 0.5, verticalAlign: 'middle' }} /> 
-                  Announcements
-                </SectionTitle>
-                
-                <Box sx={{ '& > *:not(:last-child)': { mb: 2, pb: 1.5, borderBottom: '1px solid', borderColor: 'divider' }, flex: 1 }}>
-                  <Box>
-                    <Box display="flex" alignItems="center" mb={0.5}>
-                      <Box 
-                        sx={{
-                          bgcolor: alpha(TAMU_MAROON, 0.1),
-                          color: TAMU_MAROON,
-                          p: 0.5,
-                          borderRadius: '50%',
-                          display: 'flex',
-                          mr: 1,
-                          '& svg': {
-                            fontSize: '1rem'
-                          }
-                        }}
-                      >
-                        <AnnouncementIcon fontSize="inherit" />
-                      </Box>
-                      <Typography variant="subtitle2" fontWeight={600} sx={{ fontSize: '0.8125rem' }}>
-                        New Course Available
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" color="text.secondary" paragraph sx={{ pl: 4, fontSize: '0.8125rem', mb: 0.5, lineHeight: 1.4 }}>
-                      Enroll now to learn the fundamentals of web development with our new course.
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ pl: 5.5, display: 'block' }}>
-                      Posted 2 days ago
-                    </Typography>
-                  </Box>
-                  
-                  <Box>
-                    <Box display="flex" alignItems="center" mb={1}>
-                      <Box 
-                        sx={{
-                          bgcolor: alpha(TAMU_MAROON, 0.1),
-                          color: TAMU_MAROON,
-                          p: 0.75,
-                          borderRadius: '50%',
-                          display: 'flex',
-                          mr: 1.5
-                        }}
-                      >
-                        <AnnouncementIcon fontSize="small" />
-                      </Box>
-                      <Typography variant="subtitle2" fontWeight={600}>
-                        System Maintenance
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" color="text.secondary" paragraph sx={{ pl: 5.5 }}>
-                      The platform will be undergoing maintenance on December 15th from 2 AM to 4 AM EST.
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ pl: 5.5, display: 'block' }}>
-                      Posted 1 week ago
-                    </Typography>
-                  </Box>
-                </Box>
+            <Divider sx={{ my: 4 }} />
+
+            <Box 
+              display="flex" 
+              flexDirection="column" 
+              alignItems="center" 
+              justifyContent="center" 
+              minHeight="300px"
+              textAlign="center"
+              p={3}
+              bgcolor="background.paper"
+              borderRadius={1}
+              boxShadow={1}
+            >
+              <SchoolIcon color="action" sx={{ fontSize: 60, mb: 2, opacity: 0.5 }} />
+              <Typography variant="h6" color="textSecondary" gutterBottom>
+                Upload your resume to find matching mentors
+              </Typography>
+              <Typography variant="body2" color="textSecondary" maxWidth="500px">
+                Our AI will analyze your skills and experience to connect you with the most relevant
+                industry professionals who can help guide your career.
+              </Typography>
+            </Box>
+          </>
+        );
+      
+      case 1: // Profile tab
+        return (
+          <Box>
+            <Typography variant="h4" gutterBottom>My Profile</Typography>
+            
+            <Card sx={{ mb: 4, boxShadow: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Resume & AI Profile</Typography>
+                <Typography variant="body1" color="textSecondary" paragraph>
+                  Upload your resume to let our AI match you with the best mentors.
+                </Typography>
                 
                 <Box mt={3}>
-                  <Button 
-                    fullWidth 
-                    variant="outlined" 
-                    size="small"
-                    endIcon={<ArrowForwardIcon />}
-                    sx={{
-                      borderColor: alpha(TAMU_MAROON, 0.3),
-                      color: TAMU_MAROON,
-                      '&:hover': {
-                        borderColor: TAMU_MAROON,
-                        bgcolor: alpha(TAMU_MAROON, 0.05)
-                      }
-                    }}
-                  >
-                    View All Announcements
-                  </Button>
-                </Box>
-              </CardContent>
-            </DashboardCard>
-            
-            {/* Upcoming Deadlines */}
-            <DashboardCard sx={{ mt: 3 }}>
-              <CardContent sx={{ 
-                flex: 1, 
-                display: 'flex', 
-                flexDirection: 'column',
-                minHeight: 0,
-                overflowY: 'auto',
-                '&::-webkit-scrollbar': {
-                  width: '6px',
-                },
-                '&::-webkit-scrollbar-track': {
-                  background: '#f1f1f1',
-                  borderRadius: '4px',
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  background: '#888',
-                  borderRadius: '4px',
-                },
-                '&::-webkit-scrollbar-thumb:hover': {
-                  background: '#555',
-                }
-              }}>
-                <SectionTitle variant="h6">
-                  <CalendarIcon /> Upcoming Deadlines
-                </SectionTitle>
-                
-                <Box sx={{ '& > *:not(:last-child)': { mb: 2 } }}>
-                  <Box 
-                    sx={{ 
-                      p: 2, 
-                      borderRadius: 2,
-                      bgcolor: alpha('#1976d2', 0.05),
-                      borderLeft: `3px solid #1976d2`
-                    }}
-                  >
-                    <Typography variant="subtitle2" fontWeight={600}>
-                      Assignment 1 - Web Dev
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Due: Dec 10, 2023
-                    </Typography>
-                  </Box>
+                  <input
+                    accept=".pdf"
+                    style={{ display: 'none' }}
+                    id="resume-upload"
+                    type="file"
+                    onChange={handleFileSelect}
+                    disabled={isUploading}
+                  />
+                  <label htmlFor="resume-upload">
+                    <Button
+                      variant="contained"
+                      component="span"
+                      startIcon={<UploadIcon />}
+                      disabled={isUploading}
+                    >
+                      {isUploading ? 'Uploading...' : 'Upload Resume'}
+                    </Button>
+                  </label>
                   
-                  <Box 
-                    sx={{ 
-                      p: 2, 
-                      borderRadius: 2,
-                      bgcolor: alpha('#ed6c02', 0.05),
-                      borderLeft: `3px solid #ed6c02`
-                    }}
-                  >
-                    <Typography variant="subtitle2" fontWeight={600}>
-                      Project Proposal
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Due: Dec 15, 2023
-                    </Typography>
-                  </Box>
-                </Box>
-                
-                <Box mt={2}>
-                  <Button 
-                    fullWidth 
-                    variant="text" 
-                    size="small"
-                    endIcon={<ArrowForwardIcon />}
-                    sx={{
-                      color: TAMU_MAROON,
-                      '&:hover': {
-                        bgcolor: alpha(TAMU_MAROON, 0.05)
-                      }
-                    }}
-                  >
-                    View All Deadlines
-                  </Button>
+                  <Typography variant="caption" display="block" color="textSecondary" sx={{ mt: 1 }}>
+                    Accepted formats: PDF only
+                  </Typography>
+                  
+                  {isUploading && (
+                    <Box display="flex" alignItems="center" mt={2}>
+                      <CircularProgress size={20} sx={{ mr: 1 }} />
+                      <Typography variant="body2" color="textSecondary">
+                        Uploading to AI Engine...
+                      </Typography>
+                    </Box>
+                  )}
                 </Box>
               </CardContent>
-            </DashboardCard>
-          </Grid>
-        </Grid>
-      </Container>
+            </Card>
+          </Box>
+        );
+      
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Box>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs 
+          value={activeTab} 
+          onChange={(e, newValue) => setActiveTab(newValue)}
+          aria-label="dashboard tabs"
+        >
+          <Tab label="Dashboard" />
+          <Tab label="My Profile" />
+        </Tabs>
       </Box>
-        </Card>
-      </Container>
+      
+      {renderTabContent()}
+
+      {/* Upload Resume Dialog */}
+      <Dialog open={openUploadDialog} onClose={() => !isUploading && setOpenUploadDialog(false)}>
+        <DialogTitle>Upload Your Resume</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mb: 3 }}>
+            <TextField
+              fullWidth
+              margin="normal"
+              required
+              id="uin"
+              label="University ID (UIN)"
+              placeholder="e.g., 123456789"
+              value={uin}
+              onChange={(e) => setUin(e.target.value)}
+              disabled={isUploading}
+              sx={{ mb: 2 }}
+            />
+            
+            <Typography variant="subtitle1" gutterBottom>Select your resume file</Typography>
+            <input
+              accept=".pdf"
+              style={{ display: 'none' }}
+              id="resume-upload"
+              type="file"
+              onChange={handleFileSelect}
+              disabled={isUploading}
+            />
+            <label htmlFor="resume-upload">
+              <Button
+                variant="outlined"
+                component="span"
+                disabled={isUploading}
+                sx={{ mb: 1 }}
+              >
+                Select File
+              </Button>
+            </label>
+            {selectedFile && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                Selected: {selectedFile.name}
+              </Typography>
+            )}
+            <Typography variant="caption" display="block" color="textSecondary" sx={{ mt: 1 }}>
+              Accepted format: PDF only
+            </Typography>
+          </Box>
+          
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSubmitResume}
+            disabled={!selectedFile || !uin || isUploading}
+            fullWidth
+            startIcon={isUploading ? <CircularProgress size={20} color="inherit" /> : null}
+          >
+            {isUploading ? 'Uploading...' : 'Submit Resume'}
+          </Button>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => {
+              if (!isUploading) {
+                setSelectedFile(null);
+                setOpenUploadDialog(false);
+              }
+            }}
+            disabled={isUploading}
+          >
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

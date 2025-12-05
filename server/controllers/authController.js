@@ -1,8 +1,7 @@
 // server/controllers/authController.js
-const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// @desc    Authenticate user & get token
+// @desc    Authenticate user
 // @route   POST /api/users/login
 // @access  Public
 const loginUser = async (req, res) => {
@@ -10,7 +9,7 @@ const loginUser = async (req, res) => {
 
   try {
     // Check if user exists
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
@@ -21,22 +20,18 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Create token
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '1d' }
-    );
+    // Store user in session
+    req.session.user = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    };
 
-    // Return user data and token
+    // Return user data
     res.json({
-      token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
+      user: req.session.user,
+      message: 'Login successful'
     });
 
   } catch (error) {
@@ -45,6 +40,32 @@ const loginUser = async (req, res) => {
   }
 };
 
+// @desc    Logout user
+// @route   POST /api/users/logout
+// @access  Private
+const logoutUser = (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      return res.status(500).json({ message: 'Error logging out' });
+    }
+    res.clearCookie('connect.sid');
+    res.json({ message: 'Logged out successfully' });
+  });
+};
+
+// @desc    Get current user
+// @route   GET /api/users/me
+// @access  Private
+const getCurrentUser = (req, res) => {
+  if (req.session.user) {
+    res.json(req.session.user);
+  } else {
+    res.status(401).json({ message: 'Not authenticated' });
+  }
+};
+
 module.exports = {
-  loginUser
+  loginUser,
+  logoutUser,
+  getCurrentUser
 };

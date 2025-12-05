@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../utils/api';
-import axios from 'axios';
+import api from '../api';
 import {
   Container,
   Grid,
@@ -126,10 +125,13 @@ const MentorDashboard = () => {
   const [registrations, setRegistrations] = useState([]);
   const [sponsorships, setSponsorships] = useState([]);
   const [students, setStudents] = useState([]);
+  const [scoutProfiles, setScoutProfiles] = useState([]);
   const [showSponsorModal, setShowSponsorModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [selectedProfile, setSelectedProfile] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSharing, setIsSharing] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
   
   // User data with hardcoded mentor ID
   const user = {
@@ -172,12 +174,27 @@ const MentorDashboard = () => {
     events: true,
     registrations: true,
     sponsorships: true,
-    students: true
+    students: true,
+    scoutProfiles: false
   });
   
   // Error and success states
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Fetch student profiles for Talent Scout
+  const fetchScoutProfiles = async () => {
+    try {
+      setLoading(prev => ({ ...prev, scoutProfiles: true }));
+      const response = await api.get('/student-profiles');
+      setScoutProfiles(response.data);
+    } catch (error) {
+      console.error('Error fetching scout profiles:', error);
+      toast.error('Failed to load student profiles');
+    } finally {
+      setLoading(prev => ({ ...prev, scoutProfiles: false }));
+    }
+  };
 
   // Fetch all data on component mount
   useEffect(() => {
@@ -192,7 +209,8 @@ const MentorDashboard = () => {
           events: true,
           registrations: true,
           sponsorships: true,
-          students: true
+          students: true,
+          scoutProfiles: true
         }));
 
         // Fetch data with individual error handling
@@ -209,11 +227,11 @@ const MentorDashboard = () => {
             console.error('Error fetching sponsorships:', err);
             return { data: [] };
           }),
-          api.get('/users?role=Student').then(res => {
-            console.log('Students data:', res.data);
+          api.get('/student-profiles').then(res => {
+            console.log('Student profiles data:', res.data);
             return { data: res.data };
           }).catch(err => {
-            console.error('Error fetching students:', err);
+            console.error('Error fetching student profiles:', err);
             return { data: [] };
           })
         ]);
@@ -233,16 +251,18 @@ const MentorDashboard = () => {
         console.error('Error in fetchData:', err);
         setError('Failed to fetch data. Please try again later.');
       } finally {
-        setLoading({
+        setLoading(prev => ({
+          ...prev,
           events: false,
           registrations: false,
           sponsorships: false,
           students: false
-        });
+        }));
       }
     };
 
     fetchData();
+    fetchScoutProfiles();
   }, []);
 
   // Handle sharing profile with sponsors
@@ -293,7 +313,7 @@ const MentorDashboard = () => {
       
       // Trigger webhook directly from frontend
       try {
-        await axios.post('https://ccgroup6.app.n8n.cloud/webhook/fcb9fa3e-ca66-4552-997e-b8d209d40dfa', {
+        await api.post('https://ccgroup6.app.n8n.cloud/webhook/fcb9fa3e-ca66-4552-997e-b8d209d40dfa', {
           type: 'SPONSORSHIP_SUBMITTED_FRONTEND',
           mentorId: user.id,
           eventTitle: submissionData.eventTitle,
@@ -446,8 +466,9 @@ const MentorDashboard = () => {
                             <TableCell>{sponsor.eventTitle}</TableCell>
                             <TableCell>
                               {sponsor.tier} {
-                                sponsor.tier === 'ExaByte' ? '($10,000)' ?
-                                sponsor.tier === 'PetaByte'  : 'TeraByte' : ''
+                                sponsor.tier === 'ExaByte' ? 
+                                sponsor.tier === 'PetaByte'   :
+                                sponsor.tier === 'TeraByte' 
                               }
                             </TableCell>
                             <TableCell>
@@ -766,7 +787,7 @@ const MentorDashboard = () => {
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs 
               value={activeTab} 
-              onChange={(e, newValue) => setActiveTab(newValue)}
+              onChange={handleTabChange}
               variant="fullWidth"
               textColor="primary"
               indicatorColor="primary"
@@ -803,7 +824,7 @@ const MentorDashboard = () => {
                 icon={<FaUserGraduate style={{ marginBottom: 4 }} />}
                 iconPosition="start"
                 label="Talent Scout"
-                value="talent"
+                value="talent-scout"
                 sx={{ minHeight: 64 }}
               />
             </Tabs>
@@ -812,7 +833,7 @@ const MentorDashboard = () => {
           <Box sx={{ p: 3 }}>
             {activeTab === 'events' && renderEventsTab()}
             {activeTab === 'sponsorship' && renderSponsorshipTab()}
-            {activeTab === 'talent' && renderTalentScoutTab()}
+            {activeTab === 'talent-scout' && renderTalentScoutTab()}
           </Box>
         </Paper>
 

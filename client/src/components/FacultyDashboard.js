@@ -35,7 +35,7 @@ import {
   GroupAdd as GroupAddIcon,
   EventAvailable as EventAvailableIcon
 } from '@mui/icons-material';
-import { api, getAuthConfig } from '../utils/api';
+import api from '../api';
 import Layout from './Layout';
 
 // TAMU Color Palette
@@ -215,7 +215,7 @@ const FacultyDashboard = () => {
       
       // Try to fetch real data first
       try {
-        const response = await api.get('/dashboard/faculty', getAuthConfig());
+        const response = await api.get('/dashboard/faculty');
         if (response.data) {
           setStats(prev => ({
             ...prev,

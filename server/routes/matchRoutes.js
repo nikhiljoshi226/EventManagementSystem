@@ -1,63 +1,35 @@
+// server/routes/matchRoutes.js
 const express = require('express');
 const router = express.Router();
-const { auth } = require('../middleware/auth');
-const Event = require('../models/Event');
-const User = require('../models/User');
+const { extractAndEmbed, findMatches } = require('../controllers/matchController');
+const auth = require('../middleware/auth');
 
-// @route   POST /api/match/judges
-// @desc    Find matching sponsors for event
-// @access  Private
-router.post('/judges', auth, async (req, res) => {
-  try {
-    const { eventId } = req.body;
-    const event = await Event.findById(eventId);
-    
-    if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
+// Process resume and generate embeddings
+router.post('/process-resume/:userId', auth, async (req, res, next) => {
+    try {
+        const user = await extractAndEmbed(req.params.userId);
+        res.json({ 
+            success: true,
+            message: 'Resume processed successfully',
+            skills: user.skills,
+            interests: user.interests
+        });
+    } catch (error) {
+        next(error);
     }
-
-    const sponsors = await User.find({
-      role: 'Sponsor',
-      expertise: { $in: event.tags }
-    }).select('name email expertise');
-
-    res.json({ 
-      event: event.title,
-      count: sponsors.length,
-      sponsors 
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
 });
 
-// @route   POST /api/match/students
-// @desc    Find matching students for event
-// @access  Private
-router.post('/students', auth, async (req, res) => {
-  try {
-    const { eventId } = req.body;
-    const event = await Event.findById(eventId);
-    
-    if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
+// Get mentor recommendations
+router.get('/recommendations/:userId', auth, async (req, res, next) => {
+    try {
+        const matches = await findMatches(req.params.userId);
+        res.json({
+            success: true,
+            matches
+        });
+    } catch (error) {
+        next(error);
     }
-
-    const students = await User.find({
-      role: 'Student',
-      interests: { $in: event.tags }
-    }).select('name email interests');
-
-    res.json({ 
-      event: event.title,
-      count: students.length,
-      students 
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
 });
 
 module.exports = router;

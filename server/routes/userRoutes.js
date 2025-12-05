@@ -69,4 +69,29 @@ router.post('/login', async (req, res) => {
 // Get all students
 // router.get('/students', getStudents);
 
+/**
+ * @route   GET /api/users/me
+ * @desc    Get current user's profile
+ * @access  Private
+ */
+router.get('/me', async (req, res) => {
+  try {
+    // For demo purposes, we'll return a mock user
+    // In a real app, you'd get the user ID from the session/token
+    const user = {
+      _id: 'demo-user-id',
+      name: 'Demo User',
+      email: 'demo@example.com',
+      role: 'student',
+      major: 'Computer Science',
+      resumeUrl: null
+    };
+    
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
 module.exports = router;

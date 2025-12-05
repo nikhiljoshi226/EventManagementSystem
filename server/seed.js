@@ -10,7 +10,7 @@ dotenv.config();
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/cmis_cra_local')
   .then(async () => {
     console.log('MongoDB Connected for Seeding');
-    
+
     // Clear everything
     await User.deleteMany({});
     await Event.deleteMany({});
@@ -21,9 +21,9 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/cmis_cra_
     // Create Users
     const users = await User.insertMany([
       // Students
-      { 
-        name: "Alex Student", 
-        email: "abc@bcd.acom", 
+      {
+        name: "Alex Student",
+        email: "abc@bcd.acom",
         role: "Student",
         password: 'password123',
         major: "MIS",
@@ -44,7 +44,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/cmis_cra_
         approved: true
       },
       // Mentor
-      { 
+      {
         name: "Mike Mentor",
         email: "mentor@yh.com",
         role: "Mentor",
@@ -53,7 +53,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/cmis_cra_
         expertise: ["Cloud Architecture"],
         approved: true
       },
-      { 
+      {
         name: "Nikhil Joshi",
         email: "joshinikhil314@gmail.com",
         role: "Mentor",
@@ -62,29 +62,42 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/cmis_cra_
         expertise: ["React JS"],
         approved: true
       },
+      {
+        name: "Mihir",
+        email: "mihir@mk.du",
+        password: "password123",
+        role: "Sponsor",
+        skills: [],
+        interests: [],
+        expertise: [],
+        approved: true,
+        company: 'TEXA',
+        date: new Date('2024-03-15'),
+      },
       // Faculty
-      { 
-        name: "Dr. Manogna", 
-        email: "faculty@ch.com", 
+      {
+        name: "Dr. Manogna",
+        email: "faculty@ch.com",
         role: "Faculty",
         password: 'password123',
         company: "Texas A&M University",
         approved: true
       },
-      { 
-        name: "Dr. Kale", 
-        email: "mihirkale8@gmail.com", 
+      {
+        name: "Dr. Kale",
+        email: "mihirkale8@gmail.com",
         role: "Faculty",
         password: 'password123',
         company: "Texas A&M University",
         approved: true
       },
       // Admin
-      { 
-        name: "Admin", 
-        email: "amcd@op.du", 
+      {
+        name: "Admin",
+        email: "amcd@op.du",
         role: "Admin",
         password: 'password123',
+        company: 'system',
         approved: true
       }
     ]);
@@ -148,7 +161,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/cmis_cra_
     console.log('Created sample sponsorship request');
 
     console.log('\n=== Database Seeded Successfully ===');
-    
+
     process.exit(0);
   })
   .catch(err => {
