@@ -24,16 +24,16 @@ const Navigation = () => {
           <Nav className="ms-auto">
             <Nav.Link as={Link} to="/">Home</Nav.Link>
             {user && user.role === 'Student' && (
-              <Nav.Link as={Link} to="/student">Student Dashboard</Nav.Link>
+              <Nav.Link as={Link} to="/student">Profile</Nav.Link>
             )}
             {user && user.role === 'Mentor' && (
-              <Nav.Link as={Link} to="/mentor">Mentor Dashboard</Nav.Link>
+              <Nav.Link as={Link} to="/mentor">Profile</Nav.Link>
             )}
             {user && (user.role === 'Sponsor' || user.role === 'Mentor') && (
-              <Nav.Link as={Link} to="/sponsor">Partner Portal</Nav.Link>
+              <Nav.Link as={Link} to="/sponsor">Profile</Nav.Link>
             )}
             {user && user.role === 'Faculty' && (
-              <Nav.Link as={Link} to="/faculty">Faculty Dashboard</Nav.Link>
+              <Nav.Link as={Link} to="/faculty">Profile</Nav.Link>
             )}
             {user && user.role === 'Admin' && (
               <Nav.Link as={Link} to="/admin">Admin Console</Nav.Link>

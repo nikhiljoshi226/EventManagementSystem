@@ -1,21 +1,58 @@
 import React, { useState } from 'react';
-
-const SearchIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="11" cy="11" r="8"></circle>
-    <path d="m21 21-4.35-4.35"></path>
-  </svg>
-);
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  Grid,
+  InputAdornment,
+  Paper,
+  TextField,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  LinearProgress,
+  Chip,
+  Divider,
+  useTheme,
+  alpha,
+  Checkbox,
+} from '@mui/material';
+import { Search as SearchIcon, School as SchoolIcon, ErrorOutline as ErrorOutlineIcon, Email as EmailIcon } from '@mui/icons-material';
 
 const StudentSearch = () => {
+  const theme = useTheme();
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [searchResults, setSearchResults] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [selectedStudents, setSelectedStudents] = useState([]); // Add this line
+
+  const handleSelectStudent = (student) => {
+    setSelectedStudents(prev => {
+      const isSelected = prev.some(s => s._id === student._id);
+      if (isSelected) {
+        return prev.filter(s => s._id !== student._id);
+      } else {
+        return [...prev, student];
+      }
+    });
+  };
+
+  const handleSendEmail = () => {
+    const emails = selectedStudents.map(s => s.emailID).join(';');
+    window.location.href = `mailto:${emails}`;
+  };
 
   const handleSearch = async (e) => {
-    e.preventDefault();
-    
+    e?.preventDefault();
+
     const searchQuery = String(query || '').trim();
     if (!searchQuery) {
       setError('Please enter a search query');
@@ -24,19 +61,17 @@ const StudentSearch = () => {
 
     setIsLoading(true);
     setError(null);
-    setSearchResults(null);
+    setHasSearched(true);
 
     try {
       const response = await fetch('http://localhost:5000/api/student/search', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: searchQuery })
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to process search');
       }
@@ -44,219 +79,370 @@ const StudentSearch = () => {
       setSearchResults(data);
     } catch (err) {
       console.error('Search error:', err);
-      const errorMessage = err.message.includes('Failed to fetch') 
+      setError(err.message.includes('Failed to fetch')
         ? 'Unable to connect to the server. Please check your connection.'
-        : err.message;
-      setError(errorMessage);
+        : 'An error occurred while searching. Please try again.'
+      );
+      setSearchResults([]);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const getMatchColor = (score) => {
+    if (score >= 80) return 'success';
+    if (score >= 60) return 'primary';
+    return 'secondary';
+  };
+
+  const getMatchLabel = (score) => {
+    if (score >= 80) return 'Excellent Match';
+    if (score >= 60) return 'Good Match';
+    return 'Fair Match';
+  };
+
   const renderStudentsTable = () => {
     if (!searchResults?.similar_students || searchResults.similar_students.length === 0) {
       return (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <p className="text-gray-600 font-medium">No matching students found</p>
-          <p className="text-gray-500 text-sm mt-2">Try a different search query</p>
-        </div>
+        <Box sx={{ textAlign: 'center', py: 6, bgcolor: 'grey.50', borderRadius: 2 }}>
+          <Typography variant="body1" color="text.secondary" fontWeight={500}>
+            No matching students found
+          </Typography>
+          <Typography variant="body2" color="text.secondary" mt={1}>
+            Try a different search query
+          </Typography>
+        </Box>
       );
     }
 
     return (
-      <div className="overflow-hidden border border-gray-200 rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Student Name
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Email
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Interests
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Match Score
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {searchResults.similar_students.map((student, index) => (
-              <tr 
-                key={student._id} 
-                className={`hover:bg-gray-50 transition-colors ${index === 0 ? 'bg-blue-50' : ''}`}
-              >
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-semibold text-sm">
-                        {student.studentName?.charAt(0) || '?'}
-                      </span>
-                    </div>
-                    <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">
-                        {student.studentName || 'N/A'}
-                      </div>
-                      {index === 0 && (
-                        <div className="text-xs text-blue-600 font-medium">
-                          Best Match
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{student.emailID || 'N/A'}</div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex flex-wrap gap-1">
-                    {student.interests && student.interests.length > 0 ? (
-                      student.interests.map((interest, idx) => (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                        >
-                          {interest}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-sm text-gray-500">No interests listed</span>
-                    )}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="w-16">
-                      <div className="text-sm font-medium text-gray-900">
-                        {(student.similarity_score * 100).toFixed(1)}%
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
-                        <div
-                          className="bg-blue-600 h-1.5 rounded-full"
-                          style={{ width: `${student.similarity_score * 100}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <Paper elevation={0} sx={{ overflow: 'hidden', border: 1, borderColor: 'divider', borderRadius: 2 }}>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow sx={{ bgcolor: 'grey.50' }}>
+                <TableCell sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem' }}>
+                  Student Name
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem' }}>
+                  Email
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem' }}>
+                  Match Score
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.75rem' }}>
+                  Select
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {searchResults.similar_students.map((student, index) => (
+                <TableRow
+                  key={student._id}
+                  hover
+                  sx={{
+                    bgcolor: index === 0 ? 'primary.50' : 'inherit',
+                    '&:hover': {
+                      bgcolor: index === 0 ? 'primary.100' : 'action.hover'
+                    }
+                  }}
+                >
+                  <TableCell>
+                    <Box display="flex" alignItems="center">
+                      <Box>
+                        <Typography variant="subtitle2" fontWeight={600}>
+                          {student.studentName || 'N/A'}
+                        </Typography>
+                        {index === 0 && (
+                          <Chip
+                            label="Best Match"
+                            size="small"
+                            color="primary"
+                            sx={{
+                              height: 20,
+                              mt: 0.5,
+                              '& .MuiChip-label': { px: 1, fontSize: '0.7rem' }
+                            }}
+                          />
+                        )}
+                      </Box>
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">
+                      {student.emailID || 'N/A'}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ minWidth: 100 }}>
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <Typography variant="body2" fontWeight={600}>
+                          {(student.similarity_score * 100).toFixed(1)}%
+                        </Typography>
+                      </Box>
+                      <Box sx={{
+                        width: '100%',
+                        height: 6,
+                        bgcolor: 'divider',
+                        borderRadius: 3,
+                        mt: 0.5,
+                        overflow: 'hidden'
+                      }}>
+                        <Box
+                          sx={{
+                            height: '100%',
+                            bgcolor: 'primary.main',
+                            width: `${student.similarity_score * 100}%`,
+                            borderRadius: 3
+                          }}
+                        />
+                      </Box>
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="contained"
+                      onClick={handleSendEmail}
+                      startIcon={<EmailIcon />}
+                      sx={{
+                        bgcolor: '#500000',
+                        '&:hover': {
+                          bgcolor: '#3a0000'
+                        }
+                      }}
+                    >
+                      Send Email
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
     );
   };
 
   return (
-    <div className="max-w-6xl mx-auto mt-8 p-6 bg-white rounded-lg shadow-lg">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Student Search</h2>
-        <p className="text-gray-600 text-sm mt-1">Find students by skills, experience, or interests</p>
-      </div>
-
-      <div className="mb-6">
-        <div className="flex gap-2">
-          <div className="flex-1 relative">
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              <SearchIcon />
-            </div>
-            <input
-              type="text"
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Search for students (e.g., 'Mobile App Development with DevOps experience')"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch(e)}
-            />
-          </div>
-          <button
-            onClick={handleSearch}
-            disabled={isLoading}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 font-medium transition-colors"
+    <Card
+      elevation={2}
+      sx={{
+        borderRadius: 2,
+        overflow: 'hidden',
+        mb: 4,
+        border: '1px solid',
+        borderColor: 'divider',
+        maxWidth: '100%',
+        mx: 'auto'
+      }}
+    >
+      <CardContent sx={{ p: 0 }}>
+        {/* Search Header */}
+        <Box sx={{
+          p: 3,
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          backgroundColor: 'rgba(80, 0, 0, 0.02)'
+        }}>
+          <Typography
+            variant="h5"
+            component="h2"
+            sx={{
+              mb: 1,
+              fontWeight: 600,
+              color: '#500000', // TAMU Maroon
+              fontFamily: '"Helvetica Neue", Arial, sans-serif'
+            }}
           >
-            {isLoading ? (
-              <>
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                Searching...
-              </>
-            ) : (
-              <>
-                <SearchIcon />
-                Search
-              </>
+            Student Talent Scout
+          </Typography>
+          <Typography
+            variant="body1"
+            sx={{
+              mb: 3,
+              color: 'text.secondary',
+              maxWidth: '800px'
+            }}
+          >
+            Discover talented students by searching with natural language. Find the perfect match for your projects and teams.
+          </Typography>
+
+          <Box
+            component="form"
+            onSubmit={handleSearch}
+            sx={{
+              maxWidth: '1000px',
+              mx: 'auto'
+            }}
+          >
+            <Box sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row' },
+              gap: 2,
+              alignItems: 'stretch'
+            }}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Try: 'Computer Science students with React experience' or 'Mobile app developers'"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                disabled={isLoading}
+                multiline
+                rows={2}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                      <SearchIcon sx={{ color: '#500000' }} />
+                    </InputAdornment>
+                  ),
+                  sx: {
+                    borderRadius: 2,
+                    backgroundColor: 'white',
+                    p: 1.5,
+                    border: '1px solid #e0e0e0',
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      border: 'none'
+                    },
+                    '&:hover': {
+                      boxShadow: '0 2px 8px rgba(80, 0, 0, 0.1)'
+                    },
+                    '&.Mui-focused': {
+                      boxShadow: '0 0 0 2px rgba(80, 0, 0, 0.2)',
+                      borderColor: '#500000'
+                    }
+                  }
+                }}
+              />
+              <Button
+                variant="contained"
+                onClick={handleSearch}
+                disabled={isLoading || !query.trim()}
+                size="large"
+                sx={{
+                  minWidth: '180px',
+                  height: 'auto',
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  py: 1.5,
+                  bgcolor: '#500000',
+                  '&:hover': {
+                    bgcolor: '#3a0000',
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                  },
+                  '&.Mui-disabled': {
+                    bgcolor: 'rgba(80, 0, 0, 0.4)'
+                  },
+                  transition: 'all 0.2s ease-in-out'
+                }}
+              >
+                {isLoading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  'Search Students'
+                )}
+              </Button>
+            </Box>
+
+            <Box sx={{
+              mt: 2,
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 1,
+              justifyContent: 'center'
+            }}>
+              <Chip
+                label="Web Development"
+                variant="outlined"
+                size="small"
+                onClick={() => setQuery("Web Development")}
+                sx={{
+                  cursor: 'pointer',
+                  '&:hover': {
+                    borderColor: '#500000',
+                    color: '#500000'
+                  }
+                }}
+              />
+              <Chip
+                label="Data Science"
+                variant="outlined"
+                size="small"
+                onClick={() => setQuery("Data Science")}
+                sx={{
+                  cursor: 'pointer',
+                  '&:hover': {
+                    borderColor: '#500000',
+                    color: '#500000'
+                  }
+                }}
+              />
+              <Chip
+                label="UI/UX Design"
+                variant="outlined"
+                size="small"
+                onClick={() => setQuery("UI/UX Design")}
+                sx={{
+                  cursor: 'pointer',
+                  '&:hover': {
+                    borderColor: '#500000',
+                    color: '#500000'
+                  }
+                }}
+              />
+            </Box>
+
+            {error && (
+              <Typography
+                color="error"
+                variant="body2"
+                sx={{
+                  mt: 2,
+                  p: 1.5,
+                  bgcolor: 'error.light',
+                  borderRadius: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}
+              >
+                <ErrorOutlineIcon fontSize="small" />
+                {error}
+              </Typography>
             )}
-          </button>
-        </div>
-        
-        <p className="text-xs text-gray-500 mt-2">
-          Try: "web developers with React experience" or "Mobile App Development"
-        </p>
-      </div>
+          </Box>
+        </Box>
 
-      {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-800 text-sm">{error}</p>
-        </div>
-      )}
-
-      {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-          <p className="text-gray-600 mt-4">Analyzing and finding best matches...</p>
-        </div>
-      ) : searchResults ? (
-        <div className="mt-6 space-y-6">
-          {/* Search Query Summary */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="text-sm font-semibold text-blue-900 mb-2">Search Query Analysis</h3>
-            <div className="text-sm text-blue-800">
-              <p><strong>Query:</strong> {query}</p>
-              {searchResults.llm_response && (
-                <div className="mt-2 space-y-1">
-                  {searchResults.llm_response.skills && searchResults.llm_response.skills.length > 0 && (
-                    <p><strong>Skills Detected:</strong> {searchResults.llm_response.skills.join(', ')}</p>
+        {/* Results Section */}
+        {hasSearched && (
+          <Box sx={{ p: 0, bgcolor: 'background.paper' }}>
+            {isLoading ? (
+              <Box sx={{ p: 4, textAlign: 'center' }}>
+                <CircularProgress size={40} sx={{ color: theme.palette.primary.main, mb: 2 }} />
+                <Typography>Searching for students...</Typography>
+              </Box>
+            ) : (
+              <Box sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="h6" component="h3">
+                    {searchResults.length} {searchResults.length === 1 ? 'Student' : 'Students'} Found
+                  </Typography>
+                  {searchResults.length > 0 && (
+                    <Typography variant="body2" color="text.secondary">
+                      Sorted by relevance
+                    </Typography>
                   )}
-                  {searchResults.llm_response.experienceLevel && (
-                    <p><strong>Experience Level:</strong> {searchResults.llm_response.experienceLevel}</p>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Results Table */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">
-                Top {searchResults.total_matches} Matching Students
-              </h3>
-              {searchResults.total_matches > 0 && (
-                <span className="text-sm text-gray-500">
-                  Sorted by relevance
-                </span>
-              )}
-            </div>
-            {renderStudentsTable()}
-          </div>
-
-          {/* Debug Info - Remove in production */}
-          {process.env.NODE_ENV === 'development' && (
-            <details className="mt-4">
-              <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
-                Show raw response (debug)
-              </summary>
-              <div className="mt-2 bg-gray-900 rounded-lg p-4 overflow-auto max-h-96">
-                <pre className="text-green-400 text-sm font-mono">
-                  {JSON.stringify(searchResults, null, 2)}
-                </pre>
-              </div>
-            </details>
-          )}
-        </div>
-      ) : null}
-    </div>
+                </Box>
+                {renderStudentsTable()}
+              </Box>
+            )}
+          </Box>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

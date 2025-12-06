@@ -68,14 +68,6 @@ const Layout = ({ children, showHeaderAndFooter = true }) => {
                   <>
                     <Button 
                       color="inherit" 
-                      component={RouterLink} 
-                      to={`/${userRole.toLowerCase()}`}
-                      sx={{ mx: 1 }}
-                    >
-                      Dashboard
-                    </Button>
-                    <Button 
-                      color="inherit" 
                       onClick={handleLogout}
                       variant="outlined"
                       sx={{ 

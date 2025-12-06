@@ -9,7 +9,6 @@ if (result.error) {
 console.log('Environment variables:', process.env.MONGODB_URI ? 'Loaded' : 'Not loaded');
 // Load environment variables
 const path = require('path');
-const dotenv = require('dotenv');
 
 // Load .env file from project root
 const envPath = path.resolve(__dirname, '..', '.env');
@@ -32,8 +31,6 @@ console.log('GEMINI_API_KEY is set:', !!process.env.GEMINI_API_KEY);
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const connectDB = require('./config/db');
-const path = require('path');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 
@@ -85,6 +82,13 @@ app.use(cors({
   credentials: true,
   optionsSuccessStatus: 200
 }));
+
+// Allowed origins
+const allowedOrigins = [
+  'http://localhost:3000',  // Your React app
+  'http://localhost:5000',  // Your Express server
+  // Add other allowed origins as needed
+];
 
 // CORS Middleware
 app.use(cors({
@@ -506,6 +510,7 @@ app.use((err, req, res, next) => {
   });
 });
 
+const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
   console.log('Allowed Origins:', '*');
